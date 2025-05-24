@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- Đặt viewport cố định để hiển thị giao diện PC trên mọi thiết bị -->
+    <meta name="viewport" content="width=1024">
+    <!-- Meta tags tối ưu hiệu suất -->
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <meta http-equiv="Cache-Control" content="max-age=31536000, immutable">
+    <meta name="description" content="Tự xây dựng cấu hình PC với công cụ TRUONG PHAT COMPUTER - Chọn linh kiện máy tính phù hợp nhu cầu và ngân sách">
+    
+    <title>BUILD PC TRUONG PHAT COMPUTER - Chọn Linh Kiện Máy Tính</title>
+    
+    <!-- DNS Prefetch và Preconnect -->
+    <link rel="dns-prefetch" href="https://cdn.sheetjs.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    
+    <link rel="preconnect" href="https://cdn.sheetjs.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    
+    <!-- Preload CSS quan trọng -->
+    <link rel="preload" href="./buildsan.css" as="style">
+    <link rel="preload" href="./styles.css" as="style">
+    
+    <!-- Thư viện XLSX - Nhất định phải tải trước các script khác -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.18.9/package/dist/xlsx.full.min.js" defer></script>
+    
+    <!-- CSS chính -->
+    <link rel="stylesheet" href="./buildsan.css">
+    <link rel="stylesheet" href="./styles.css">
+    
+    <!-- Chỉ load font awesome icons cần thiết thay vì toàn bộ -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    
+    <!-- Progressive Web App -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#222831">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    
+    <!-- CSS cho modal/popup -->
+    <link rel="stylesheet" href="./modal-styles.css" media="print" onload="this.media='all'">
+    
+    <style>
+        /* Custom styles for the game cards */
+        .game-card {
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+        }
+        
+        .game-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .game-card:hover img {
+            transform: scale(1.05);
+        }
+        
+        .game-card.selected {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+            border: 2px solid #007bff;
+        }
+        
+        .game-card .game-title {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        
+        /* Global image size control - enforce strict sizes */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Styles for component images */
+        .component-image-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 70px;
+            height: 70px;
+            overflow: hidden;
+        }
+        
+        .component-image-wrapper img {
+            max-width: 70px !important;
+            max-height: 70px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+        
+        /* Fix for component card images */
+        .component-card .component-image {
+            max-width: 70px !important;
+            max-height: 70px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+        
+        /* Fix for modal table images */
+        .modal-content .component-table img,
+        .component-table img {
+            max-width: 50px !important;
+            max-height: 50px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+        
+        /* Fix for AMD/Intel selection */
+        #intel-option, #amd-option {
+            cursor: pointer;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #intel-option.selected, #amd-option.selected {
+            border-color: #007bff;
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+        
+        #intel-option img, #amd-option img {
+            max-width: 60px !important;
+            max-height: 60px !important;
+            width: auto !important;
+            height: auto !important;
+            margin-bottom: 5px;
+            object-fit: contain !important;
+        }
+        
+        /* Fix for linh kiện đã chọn section */
+        #selected-components-list .component-card {
+            display: flex;
+            align-items: center;
+        }
+        
+        #selected-components-list .component-card img {
+            max-width: 70px !important;
+            max-height: 70px !important;
+            width: auto !important;
+            height: auto !important;
+            margin-right: 15px;
+            object-fit: contain !important;
+        }
+        
+        /* Fix for table images in config-table */
+        .config-table img,
+        .config-table td img {
+            max-width: 50px !important;
+            max-height: 50px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        /* Ensure component images in table cells don't overflow */
+        .config-table td:nth-child(2) {
+            text-align: center;
+            padding: 5px;
+        }
+        
+        /* Control images in selected components cards */
+        .selected-components-grid .component-card {
+            position: relative;
+            padding-left: 90px;
+            min-height: 90px;
+        }
+        
+        .selected-components-grid .component-card img {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            max-width: 70px !important;
+            max-height: 70px !important;
+        }
+        
+        /* Ensure no image exceeds container */
+        * {
+            box-sizing: border-box;
+        }
+        
+        /* Override any conflicting styles from other CSS files */
+        body img {
+            max-width: 100% !important;
+        }
+        
+        /* Specific override for large images */
+        img[src*="component"],
+        img[src*="cpu"],
+        img[src*="mainboard"],
+        img[src*="vga"],
+        img[src*="ram"],
+        img[src*="ssd"],
+        img[src*="psu"],
+        img[src*="case"],
+        img[src*="cooler"],
+        img[src*="monitor"],
+        img[src*="hdd"] {
+            max-width: 70px !important;
+            max-height: 70px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+        
+        /* CSS để hiển thị rõ loại CPU đã chọn */
+        body.intel-mode .cpu-type-indicator {
+            background-color: #0071c5;
+            color: white;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        /* Hiệu ứng khi chọn AMD */
+        body.amd-mode .cpu-type-indicator {
+            background-color: #ED1C24;
+            color: white;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        /* Làm rõ nút CPU type đã chọn */
+        #intel-option.selected, #amd-option.selected {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            z-index: 5;
+        }
+        
+        /* Làm nổi bật nút Intel khi được chọn */
+        #intel-option.selected {
+            border: 3px solid #0071c5;
+        }
+        
+        /* Làm nổi bật nút AMD khi được chọn */
+        #amd-option.selected {
+            border: 3px solid #ED1C24;
+        }
+        
+        /* Cải thiện hiển thị của game card */
+        .game-card.selected {
+            transform: scale(1.05);
+            border: 3px solid #4CAF50 !important;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        }
+        
+        /* Global debug elements styling */
+        .debug-box {
+            position: fixed;
+            right: 10px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            z-index: 10000;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* Intel theme */
+        body.intel-mode {
+            --cpu-color: #0071c5;
+            --cpu-hover-color: #005999;
+        }
+        
+        /* AMD theme */
+        body.amd-mode {
+            --cpu-color: #ED1C24;
+            --cpu-hover-color: #c10000;
+        }
+        
+        /* Applied to Intel option when Intel is selected */
+        body.intel-mode #intel-option.selected {
+            border: 4px solid #0071c5;
+            box-shadow: 0 0 20px rgba(0,113,197,0.6);
+            transform: scale(1.15);
+        }
+        
+        /* Applied to AMD option when AMD is selected */
+        body.amd-mode #amd-option.selected {
+            border: 4px solid #ED1C24;
+            box-shadow: 0 0 20px rgba(237,28,36,0.6);
+            transform: scale(1.15);
+        }
+        
+        /* Page header color based on selected CPU */
+        body.intel-mode .page-header {
+            background: linear-gradient(to right, #0071c5, #00a1e0);
+        }
+        
+        body.amd-mode .page-header {
+            background: linear-gradient(to right, #ED1C24, #ff4d54);
+        }
+        
+        /* Button styling based on CPU type */
+        body.intel-mode .btn-primary {
+            background-color: #0071c5;
+            border-color: #0071c5;
+        }
+        
+        body.amd-mode .btn-primary {
+            background-color: #ED1C24;
+            border-color: #ED1C24;
+        }
+        
+        /* Floating indicator of current CPU mode */
+        #cpu-mode-indicator {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: white;
+            z-index: 9999;
+        }
+        
+        body.intel-mode #cpu-mode-indicator {
+            background-color: #0071c5;
+        }
+        
+        body.amd-mode #cpu-mode-indicator {
+            background-color: #ED1C24;
+        }
+    </style>
+    
+    <script>
+        // Fix for "exports is not defined" errors
+        if (typeof exports === 'undefined') {
+            window.exports = {};
+            window.module = { exports: window.exports };
+        }
+        
+        // Fix for 'require is not defined' error
+        if (typeof require === 'undefined') {
+            window.require = function(module) {
+                console.log('Mock require called for:', module);
+                return {};
+            };
+        }
+        
+        // Fix for "process is not defined" error
+        if (typeof process === 'undefined') {
+            window.process = {
+                env: { NODE_ENV: 'production' },
+                browser: true,
+                versions: { node: false }
+            };
+        }
+        
+        // Fix for potential infinite recursion in getWindow/getComputedStyle
+        const originalGetComputedStyle = window.getComputedStyle;
+        const computedStyleCache = new WeakMap();
+        
+        window.getComputedStyle = function(element, pseudoElt) {
+            if (!element) return null;
+            
+            // Return cached result if available
+            if (computedStyleCache.has(element)) {
+                return computedStyleCache.get(element);
+            }
+            
+            try {
+                // Handle special element types that might cause recursion
+                if (element instanceof HTMLCanvasElement || 
+                    element instanceof HTMLImageElement ||
+                    element instanceof SVGElement ||
+                    element instanceof HTMLScriptElement) {
+                    const defaultStyle = {
+                        getPropertyValue: () => '',
+                        setProperty: () => {},
+                    };
+                    computedStyleCache.set(element, defaultStyle);
+                    return defaultStyle;
+                }
+                
+                const result = originalGetComputedStyle.call(window, element, pseudoElt);
+                computedStyleCache.set(element, result);
+                return result;
+            } catch (e) {
+                console.warn('Error in getComputedStyle:', e);
+                return originalGetComputedStyle.call(window, document.body); // Fallback
+            }
+        };
+        
+        // Fix for read-only window properties
+        const windowProxy = new Proxy(window, {
+            set(target, prop, value) {
+                if (['top', 'parent', 'self', 'window', 'frames', 'location'].includes(prop)) {
+                    const safeProp = `${prop}_safe`;
+                    try {
+                        Object.defineProperty(target, safeProp, {
+                            value,
+                            writable: true,
+                            configurable: true
+                        });
+                        console.log(`Created safe property '${safeProp}' for read-only '${prop}'`);
+                        return true;
+                    } catch (e) {
+                        console.warn(`Could not create safe property for ${prop}:`, e);
+                        return true; // Prevent error
+                    }
+                }
+                target[prop] = value;
+                return true;
+            }
+        });
+        
+        // Apply the proxy
+        try {
+            if (typeof globalThis !== 'undefined') {
+                globalThis.windowProxy = windowProxy;
+            }
+        } catch (e) {
+            console.warn('Failed to create window proxy:', e);
+        }
+        
+        // Lazy load images
+        document.addEventListener("DOMContentLoaded", function() {
+            const lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+            
+            if ("IntersectionObserver" in window) {
+                let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting) {
+                            let lazyImage = entry.target;
+                            lazyImage.src = lazyImage.dataset.src;
+                            if (lazyImage.dataset.srcset) {
+                                lazyImage.srcset = lazyImage.dataset.srcset;
+                            }
+                            lazyImage.classList.remove("lazy");
+                            lazyImageObserver.unobserve(lazyImage);
+                        }
+                    });
+                });
+                
+                lazyImages.forEach(function(lazyImage) {
+                    lazyImageObserver.observe(lazyImage);
+                });
+            } else {
+                // Fallback for browsers without IntersectionObserver
+                let active = false;
+                
+                const lazyLoad = function() {
+                    if (active === false) {
+                        active = true;
+                        
+                        setTimeout(function() {
+                            lazyImages.forEach(function(lazyImage) {
+                                if ((lazyImage.getBoundingClientRect().top <= window.innerHeight && lazyImage.getBoundingClientRect().bottom >= 0) && getComputedStyle(lazyImage).display !== "none") {
+                                    lazyImage.src = lazyImage.dataset.src;
+                                    if (lazyImage.dataset.srcset) {
+                                        lazyImage.srcset = lazyImage.dataset.srcset;
+                                    }
+                                    lazyImage.classList.remove("lazy");
+                                    
+                                    lazyImages = lazyImages.filter(function(image) {
+                                        return image !== lazyImage;
+                                    });
+                                    
+                                    if (lazyImages.length === 0) {
+                                        document.removeEventListener("scroll", lazyLoad);
+                                        window.removeEventListener("resize", lazyLoad);
+                                        window.removeEventListener("orientationchange", lazyLoad);
+                                    }
+                                }
+                            });
+                            
+                            active = false;
+                        }, 200);
+                    }
+                };
+                
+                document.addEventListener("scroll", lazyLoad);
+                window.addEventListener("resize", lazyLoad);
+                window.addEventListener("orientationchange", lazyLoad);
+                lazyLoad();
+            }
+        });
+        
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js');
+            });
+        }
+    </script>
+    <script src="./enums.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <div class="logo-container">
+            <div class="logo">
+                <i class="fas fa-desktop fa-spin"></i>
+                <span>TRUONG PHAT COMPUTER</span>
+            </div>
+            <button id="dark-mode-toggle" title="Chuyển chế độ sáng/tối" style="margin-left:20px;font-size:1.5em;background:none;border:none;cursor:pointer;color:#fff;"><i class="fas fa-moon"></i></button>
+        </div>
+        <div class="contact-buttons">
+            <a href="https://zalo.me/0836768597" target="_blank" class="contact-button">
+                <i class="fab fa-zalo"></i> Liên hệ qua Zalo
+            </a>
+            <div class="phone-number">
+                <a href="tel:0836768597">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>0836768597</span>
+                </a>
+            </div>
+            <a href="https://www.facebook.com/tpcom.hb" target="_blank" class="contact-button">
+                <i class="fab fa-facebook"></i> Liên hệ qua Facebook
+            </a>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="page-title">
+            <h1><i class="fas fa-tools"></i> XÂY DỰNG CẤU HÌNH PC <i class="fas fa-tools"></i></h1>
+            <p class="subtitle">Tùy chỉnh theo nhu cầu và ngân sách của bạn</p>
+        </div>
+
+        <div class="container">
+            <div class="build-progress">
+                <div class="progress-step active" data-step="1">
+                    <div class="step-icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="step-label">Ngân sách</div>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-icon"><i class="fas fa-microchip"></i></div>
+                    <div class="step-label">CPU</div>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-icon"><i class="fas fa-gamepad"></i></div>
+                    <div class="step-label">Game</div>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <div class="step-icon"><i class="fas fa-laptop-code"></i></div>
+                    <div class="step-label">Linh kiện</div>
+                </div>
+                <div class="progress-step" data-step="5">
+                    <div class="step-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="step-label">Hoàn thành</div>
+                </div>
+            </div>
+
+            <!-- Phần tầm tiền -->
+            <section id="budget-range-selection" class="selection-section accent-section">
+                <div class="section-header">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <h2>Chọn Cấu Hình Tầm Tiền Mong Muốn</h2>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-value-container">
+                        <span id="budget-value-min">3 triệu</span>
+                        <span id="budget-value" class="budget-value-current">3 triệu</span>
+                        <span id="budget-value-max">30 triệu</span>
+                    </div>
+                    <input type="range" id="budget-range" min="3000000" max="30000000" step="1000000" value="3000000" class="slider">
+                    <div class="slider-ticks">
+                        <span>3M</span>
+                        <span>10M</span>
+                        <span>20M</span>
+                        <span>30M</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phần chọn loại CPU -->
+            <section id="cpu-type-selection" class="selection-section accent-section">
+                <div class="section-header">
+                    <i class="fas fa-microchip"></i>
+                    <h2>Chọn Loại CPU</h2>
+                </div>
+                <div class="cpu-brand-selection">
+                    <div class="brand-option" id="intel-option" onclick="handleCpuSelection('Intel')">
+                        <div class="brand-logo">
+                            <img src="images/intel.jpg" alt="Intel Logo" style="height:48px;width:auto;object-fit:contain;" onerror="this.style.display='none';this.parentNode.innerHTML='<i class=\'fab fa-intel\'></i>'">
+                        </div>
+                        <div class="brand-name">INTEL</div>
+                    </div>
+                    <div class="brand-option" id="amd-option" onclick="handleCpuSelection('Amd')">
+                        <div class="brand-logo">
+                            <img src="images/amd.jpg" alt="AMD Logo" style="height:48px;width:auto;object-fit:contain;" onerror="this.style.display='none';this.parentNode.innerHTML='<i class=\'fab fa-amd\'></i>'">
+                        </div>
+                        <div class="brand-name">AMD</div>
+                    </div>
+                </div>
+                <select id="cpu-type" name="cpu-type" class="dropdown hidden-dropdown" required>
+                    <option value="Intel">INTEL</option>
+                    <option value="Amd">AMD</option>
+                </select>
+            </section>
+
+            <!-- Inline script để đảm bảo sự kiện click luôn hoạt động -->
+            <script>
+                function handleCpuSelection(type) {
+                    console.log('Direct CPU selection click:', type);
+                    
+                    // Update visual UI immediately
+                    const intelOption = document.getElementById('intel-option');
+                    const amdOption = document.getElementById('amd-option');
+                    const cpuTypeDropdown = document.getElementById('cpu-type');
+                    
+                    if (type === 'Intel') {
+                        intelOption.classList.add('selected');
+                        amdOption.classList.remove('selected');
+                        if (cpuTypeDropdown) cpuTypeDropdown.value = 'Intel';
+                    } else {
+                        amdOption.classList.add('selected');
+                        intelOption.classList.remove('selected');
+                        if (cpuTypeDropdown) cpuTypeDropdown.value = 'Amd';
+                    }
+                    
+                    // Trigger CPU-type change event
+                    if (cpuTypeDropdown) {
+                        cpuTypeDropdown.dispatchEvent(new Event('change'));
+                    }
+                    
+                    // Use a small timeout to ensure event-handlers.js has loaded
+                    setTimeout(() => {
+                        // Call the global handler function if available
+                        if (typeof window.handleCpuTypeSelection === 'function') {
+                            console.log('Calling global handleCpuTypeSelection with:', type);
+                            window.handleCpuTypeSelection(type);
+                        } else {
+                            console.warn('Global handleCpuTypeSelection function not found! Using fallback...');
+                            
+                            // Fallback: Apply basic UI changes
+                            document.body.setAttribute('data-selected-cpu-type', type);
+                            document.body.setAttribute('data-current-cpu-type', type);
+                            
+                            // Create permanent indicator
+                            const existingIndicator = document.getElementById('permanent-cpu-indicator');
+                            if (existingIndicator) existingIndicator.remove();
+                            
+                            const cpuIndicator = document.createElement('div');
+                            cpuIndicator.style.position = 'fixed';
+                            cpuIndicator.style.bottom = '20px';
+                            cpuIndicator.style.right = '20px';
+                            cpuIndicator.style.padding = '15px 20px';
+                            cpuIndicator.style.backgroundColor = type === 'Intel' ? '#0071c5' : '#ED1C24';
+                            cpuIndicator.style.color = 'white';
+                            cpuIndicator.style.fontWeight = 'bold';
+                            cpuIndicator.style.fontSize = '18px';
+                            cpuIndicator.style.zIndex = '10000';
+                            cpuIndicator.style.borderRadius = '5px';
+                            cpuIndicator.style.boxShadow = '0 0 15px rgba(0,0,0,0.5)';
+                            cpuIndicator.id = 'permanent-cpu-indicator';
+                            cpuIndicator.textContent = `${type.toUpperCase()} MODE`;
+                            document.body.appendChild(cpuIndicator);
+                            
+                            // Try to reload config with selected CPU
+                            try {
+                                const gameId = document.getElementById('game-genre')?.value;
+                                const budget = parseInt(document.getElementById('budget-range')?.value);
+                                if (typeof window.autoSelectConfig === 'function' && gameId && budget) {
+                                    window.autoSelectConfig(gameId, budget, type);
+                                }
+                            } catch (e) {
+                                console.error('Error in fallback config selection:', e);
+                            }
+                        }
+                    }, 100);
+                }
+                
+                // Thêm CSS động để làm nổi bật nút được chọn
+                const style = document.createElement('style');
+                style.textContent = `
+                    .brand-option {
+                        cursor: pointer !important;
+                        transition: all 0.3s ease;
+                        border: 3px solid transparent;
+                        position: relative;
+                        z-index: 5;
+                    }
+                    .brand-option:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                    }
+                    .brand-option.selected {
+                        border-color: #4CAF50;
+                        box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+                    }
+                    #intel-option.selected {
+                        border-color: #0071c5;
+                        box-shadow: 0 0 15px rgba(0, 113, 197, 0.5);
+                    }
+                    #amd-option.selected {
+                        border-color: #ED1C24;
+                        box-shadow: 0 0 15px rgba(237, 28, 36, 0.5);
+                    }
+                    .brand-option::after {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        z-index: 10;
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Handle direct clicks with redundant event listeners
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Add redundant click handlers to ensure clicks work
+                    document.querySelectorAll('#intel-option, #amd-option').forEach(el => {
+                        el.addEventListener('click', function(e) {
+                            const type = this.id === 'intel-option' ? 'Intel' : 'Amd';
+                            console.log(`Extra click handler for ${type} activated`);
+                            handleCpuSelection(type);
+                            e.preventDefault();
+                            e.stopPropagation();
+                        });
+                    });
+                    
+                    // Set a hard-coded click handler on document
+                    document.addEventListener('click', function(e) {
+                        const intelOption = document.getElementById('intel-option');
+                        const amdOption = document.getElementById('amd-option');
+                        
+                        if (e.target && (e.target === intelOption || intelOption.contains(e.target))) {
+                            console.log('Document-level Intel click detected');
+                            handleCpuSelection('Intel');
+                        } else if (e.target && (e.target === amdOption || amdOption.contains(e.target))) {
+                            console.log('Document-level AMD click detected');
+                            handleCpuSelection('Amd');
+                        }
+                    });
+                });
+            </script>
+
+            <!-- Phần chọn game -->
+            <section id="game-selection" class="selection-section accent-section">
+                <div class="section-header">
+                    <i class="fas fa-gamepad"></i>
+                    <h2>Chọn Game Muốn Chơi</h2>
+                </div>
+                <div class="game-grid">
+                    <div class="game-card" data-game="valorant">
+                        <div class="game-image" style="background-image: url('images/valorant.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">Valorant</div>
+                    </div>
+                    <div class="game-card" data-game="csgo">
+                        <div class="game-image" style="background-image: url('images/csgo.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">CS:GO</div>
+                    </div>
+                    <div class="game-card" data-game="pubg">
+                        <div class="game-image" style="background-image: url('images/pubg.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">PUBG</div>
+                    </div>
+                    <div class="game-card" data-game="lol">
+                        <div class="game-image" style="background-image: url('images/lol.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">Liên Minh Huyền Thoại</div>
+                    </div>
+                    <div class="game-card" data-game="gta-v">
+                        <div class="game-image" style="background-image: url('images/gta-v.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">GTA V</div>
+                    </div>
+                    <div class="game-card" data-game="elden-ring">
+                        <div class="game-image" style="background-image: url('images/elden-ring.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">Elden Ring</div>
+                    </div>
+                    <div class="game-card" data-game="naraka">
+                        <div class="game-image" style="background-image: url('images/naraka.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">Naraka: Bladepoint</div>
+                    </div>
+                    <div class="game-card" data-game="genshin">
+                        <div class="game-image" style="background-image: url('images/genshin.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">Genshin Impact</div>
+                    </div>
+                    <div class="game-card" data-game="fo4">
+                        <div class="game-image" style="background-image: url('images/fo4.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">FIFA Online 4</div>
+                    </div>
+                    <div class="game-card" data-game="black-myth-wukong">
+                        <div class="game-image" style="background-image: url('images/black-myth-wukong.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">Black Myth: Wukong</div>
+                    </div>
+                    <div class="game-card" data-game="god-of-war">
+                        <div class="game-image" style="background-image: url('images/god-of-war.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">God of War</div>
+                    </div>
+                    <div class="game-card" data-game="battle-teams-2">
+                        <div class="game-image" style="background-image: url('images/battle-teams-2.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">Battle Teams 2</div>
+                    </div>
+                    <div class="game-card" data-game="delta-force">
+                        <div class="game-image" style="background-image: url('images/delta-force.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">Delta Force</div>
+                    </div>
+                    <div class="game-card" data-game="audition">
+                        <div class="game-image" style="background-image: url('images/audition.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">Audition</div>
+                    </div>
+                    <div class="game-card" data-game="mu-origin">
+                        <div class="game-image" style="background-image: url('images/mu-origin.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">MU Origin</div>
+                    </div>
+                    <div class="game-card" data-game="crossfire">
+                        <div class="game-image" style="background-image: url('images/crossfire.jpg'); background-size: cover; background-position: center; height: 100px;"></div>
+                        <div class="game-name">CrossFire</div>
+                    </div>
+                </div>
+                <select id="game-genre" name="game-genre" class="dropdown hidden-dropdown" required>
+                    <option value="">Chọn game</option>
+                    <option value="valorant">Valorant</option>
+                    <option value="csgo">CS:GO</option>
+                    <option value="pubg">PUBG</option>
+                    <option value="lol">Liên Minh Huyền Thoại (LOL)</option>
+                    <option value="gta-v">GTA V</option>
+                    <option value="elden-ring">Elden Ring</option>
+                    <option value="naraka">Naraka: Bladepoint</option>
+                    <option value="genshin">Genshin Impact</option>
+                    <option value="fo4">FIFA Online 4</option>
+                    <option value="black-myth-wukong">Black Myth: Wukong</option>
+                    <option value="god-of-war">God of War</option>
+                    <option value="battle-teams-2">Battle Teams 2</option>
+                    <option value="delta-force">Delta Force</option>
+                    <option value="audition">Audition</option>
+                    <option value="mu-origin">MU Origin</option>
+                    <option value="crossfire">CrossFire</option>
+                </select>
+                
+                <div class="auto-select-container" style="margin-top: 20px; text-align: center;">
+                    <button id="manual-auto-select" class="action-button primary-btn" style="display: inline-block; padding: 10px 20px;">
+                        <i class="fas fa-magic"></i> Tự Động Chọn Cấu Hình
+                    </button>
+                </div>
+            </section>
+
+            <section id="component-selection" class="selection-section">
+                <div class="section-header">
+                    <i class="fas fa-laptop-code"></i>
+                    <h2>Lựa Chọn Linh Kiện Chính</h2>
+                </div>
+                <div class="container">
+                    <div id="socket-message" class="warning-message" style="display: none; margin: 10px 0; padding: 10px; background-color: #fff3cd; border-radius: 5px; color: #856404;"></div>
+                    <div class="components-grid">
+                        <div class="component">
+                            <div class="component-header">
+                                <i class="fas fa-microchip"></i>
+                                <h3>CPU</h3>
+                                <div class="compatibility-icon" id="cpu-compatibility"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <select id="cpu" name="cpu" class="dropdown">
+                                <option value="" disabled selected>Chọn CPU</option>
+                            </select>
+                            <div class="component-info-hover" id="cpu-info">
+                                <div class="specs-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <i class="fas fa-server"></i>
+                                <h3>Mainboard</h3>
+                                <div class="compatibility-icon" id="mainboard-compatibility"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <select id="mainboard" name="mainboard" class="dropdown">
+                                <option value="" disabled selected>Chọn Mainboard</option>
+                            </select>
+                            <div class="component-info-hover" id="mainboard-info">
+                                <div class="specs-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <i class="fas fa-tv"></i>
+                                <h3>Card Đồ Họa (VGA)</h3>
+                                <div class="compatibility-icon" id="vga-compatibility"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <select id="vga" name="vga" class="dropdown">
+                                <option value="" disabled selected>Chọn VGA</option>
+                            </select>
+                            <div class="component-info-hover" id="vga-info">
+                                <div class="specs-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <i class="fas fa-memory"></i>
+                                <h3>RAM</h3>
+                                <div class="compatibility-icon" id="ram-compatibility"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <select id="ram" name="ram" class="dropdown">
+                                <option value="" disabled selected>Chọn RAM</option>
+                            </select>
+                            <div class="component-info-hover" id="ram-info">
+                                <div class="specs-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <i class="fas fa-hdd"></i>
+                                <h3>Ổ Cứng SSD</h3>
+                                <div class="compatibility-icon" id="ssd-compatibility"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <select id="ssd" name="ssd" class="dropdown">
+                                <option value="" disabled selected>Chọn SSD</option>
+                            </select>
+                            <div class="component-info-hover" id="ssd-info">
+                                <div class="specs-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <i class="fas fa-bolt"></i>
+                                <h3>Nguồn (PSU)</h3>
+                                <div class="compatibility-icon" id="psu-compatibility"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <select id="psu" name="psu" class="dropdown">
+                                <option value="" disabled selected>Chọn PSU</option>
+                            </select>
+                            <div class="component-info-hover" id="psu-info">
+                                <div class="specs-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <i class="fas fa-cube"></i>
+                                <h3>Vỏ Case</h3>
+                                <div class="compatibility-icon" id="case-compatibility"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <select id="case" name="case" class="dropdown">
+                                <option value="" disabled selected>Chọn Case</option>
+                            </select>
+                            <div class="component-info-hover" id="case-info">
+                                <div class="specs-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <i class="fas fa-wind"></i>
+                                <h3>Tản Nhiệt CPU</h3>
+                                <div class="compatibility-icon" id="cpuCooler-compatibility"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <select id="cpuCooler" name="cpuCooler" class="dropdown">
+                                <option value="" disabled selected>Chọn Tản Nhiệt CPU</option>
+                            </select>
+                            <div class="component-info-hover" id="cpuCooler-info">
+                                <div class="specs-preview"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="additional-selection" class="selection-section">
+                <div class="section-header">
+                    <i class="fas fa-plus-circle"></i>
+                    <h2>Lựa Chọn Thêm (Tùy Chọn)</h2>
+                </div>
+                <div class="container">
+                    <div class="components-grid">
+                        <div class="component">
+                            <div class="component-header">
+                                <i class="fas fa-database"></i>
+                                <h3>HDD</h3>
+                            </div>
+                            <select id="hdd" name="hdd" class="dropdown">
+                                <option value="" disabled selected>Chọn HDD</option>
+                            </select>
+                            <div class="component-info-hover" id="hdd-info">
+                                <div class="specs-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="component">
+                            <div class="component-header">
+                                <i class="fas fa-desktop"></i>
+                                <h3>Màn Hình</h3>
+                            </div>
+                            <select id="monitor" name="monitor" class="dropdown">
+                                <option value="" disabled selected>Chọn Màn Hình</option>
+                            </select>
+                            <div class="component-info-hover" id="monitor-info">
+                                <div class="specs-preview"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="selected-components">
+                <div class="section-header">
+                    <i class="fas fa-list-check"></i>
+                    <h2>Linh kiện đã chọn</h2>
+                </div>
+                <div id="selected-components-list" class="selected-components-grid"></div>
+            </section>
+
+            <div id="compatibility-alert" class="compatibility-alert hidden">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div class="alert-message" id="compatibility-message"></div>
+                <button id="close-alert" class="close-alert"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div id="summary-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-clipboard-list"></i> Cấu hình chi tiết</h2>
+                        <span class="close-modal">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="modal-components-list"></div>
+                        <div id="modal-total-price">Tổng cộng: 0 VNĐ</div>
+                        <div id="image-preview-container"></div>
+                        <div class="share-options">
+                            <button id="share-facebook" class="share-button"><i class="fab fa-facebook"></i> Chia sẻ Facebook</button>
+                            <button id="copy-link" class="share-button"><i class="fas fa-link"></i> Sao chép liên kết</button>
+                            <button id="download-config" class="share-button luu-cau-hinh"><i class="fas fa-download"></i> Tải cấu hình</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section id="total-price" class="total-price">
+                <h2>Tổng Tiền Dự Kiến</h2>
+                <p>0 VNĐ</p>
+                <div class="price-breakdown">
+                    <button id="view-breakdown" class="view-breakdown-btn"><i class="fas fa-receipt"></i> Xem chi tiết</button>
+                </div>
+            </section>
+
+            <div class="button-group">
+                <button type="button" class="action-button secondary-btn" id="reset-button">
+                    <i class="fas fa-redo"></i> Làm mới
+                </button>
+                <button type="button" class="action-button primary-btn" id="calculate-button">
+                    <i class="fas fa-clipboard-check"></i> XEM CHI TIẾT VÀ ĐÁNH GIÁ
+                </button>
+                <button type="button" class="action-button accent-btn luu-cau-hinh" id="save-button">
+                    <i class="fas fa-save"></i> Lưu cấu hình
+                </button>
+            </div>
+            
+            <div class="config-table fixed-bottom">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>HÌNH ẢNH</th>
+                            <th>TÊN, MÃ, LOẠI LINH KIỆN</th>
+                            <th>ĐVT</th>
+                            <th>SỐ LƯỢNG</th>
+                            <th>ĐƠN GIÁ</th>
+                            <th>THÀNH TIỀN</th>
+                            <th>BẢO HÀNH</th>
+                            <th>GHI CHÚ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td id="cpu-image"></td>
+                            <td id="cpu-name"></td>
+                            <td>Chiếc</td>
+                            <td>1</td>
+                            <td id="cpu-price"></td>
+                            <td id="cpu-total"></td>
+                            <td>36T</td>
+                            <td>NEW</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td id="mainboard-image"></td>
+                            <td id="mainboard-name"></td>
+                            <td>Chiếc</td>
+                            <td>1</td>
+                            <td id="mainboard-price"></td>
+                            <td id="mainboard-total"></td>
+                            <td>36T</td>
+                            <td>NEW</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td id="ram-image"></td>
+                            <td id="ram-name"></td>
+                            <td>Chiếc</td>
+                            <td>1</td>
+                            <td id="ram-price"></td>
+                            <td id="ram-total"></td>
+                            <td>36T</td>
+                            <td>NEW</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td id="vga-image"></td>
+                            <td id="vga-name"></td>
+                            <td>Chiếc</td>
+                            <td>1</td>
+                            <td id="vga-price"></td>
+                            <td id="vga-total"></td>
+                            <td>3T</td>
+                            <td>NEW</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td id="ssd-image"></td>
+                            <td id="ssd-name"></td>
+                            <td>Chiếc</td>
+                            <td>1</td>
+                            <td id="ssd-price"></td>
+                            <td id="ssd-total"></td>
+                            <td>36T</td>
+                            <td>NEW</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td id="cpu-cooler-image"></td>
+                            <td id="cpu-cooler-name"></td>
+                            <td>Chiếc</td>
+                            <td>1</td>
+                            <td id="cpu-cooler-price"></td>
+                            <td id="cpu-cooler-total"></td>
+                            <td>12T</td>
+                            <td>NEW</td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td id="psu-image"></td>
+                            <td id="psu-name"></td>
+                            <td>Chiếc</td>
+                            <td>1</td>
+                            <td id="psu-price"></td>
+                            <td id="psu-total"></td>
+                            <td>36T</td>
+                            <td>NEW</td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td id="case-image"></td>
+                            <td id="case-name"></td>
+                            <td>Chiếc</td>
+                            <td>1</td>
+                            <td id="case-price"></td>
+                            <td id="case-total"></td>
+                            <td>12T</td>
+                            <td>NEW</td>
+                        </tr>
+                        <tr>
+                            <td>9</td>
+                            <td id="hdd-image"></td>
+                            <td id="additional-component-name"></td>
+                            <td>Chiếc</td>
+                            <td>1</td>
+                            <td id="additional-component-price"></td>
+                            <td id="additional-component-total"></td>
+                            <td>12T</td>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td id="monitor-image"></td>
+                            <td id="monitor-name"></td>
+                            <td>Chiếc</td>
+                            <td>1</td>
+                            <td id="monitor-price"></td>
+                            <td id="monitor-total"></td>
+                            <td>36T</td>
+                            <td>NEW</td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"></td>
+                            <td>-</td>
+                            <td colspan="2"></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td colspan="6" style="text-align: right;"><strong>Tổng cộng</strong></td>
+                            <td id="total-price-cell">0</td>
+                            <td colspan="2"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6" style="text-align: right;"><strong>Chiết khấu</strong></td>
+                            <td></td>
+                            <td colspan="2"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6" style="text-align: right;"><strong>Đã thanh toán</strong></td>
+                            <td></td>
+                            <td colspan="2"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="6" style="text-align: right;"><strong>Còn lại</strong></td>
+                            <td id="remaining-price-cell">0</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="socket-message" class="system-message"></div>
+                <div id="score-message" class="system-message"></div>
+                <div id="upgrade-message" class="system-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal dialog for configuration details -->
+    <div class="modal">
+        <div class="modal-content">
+            <!-- Modal content will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-desktop"></i> TRUONG PHAT COMPUTER
+            </div>
+            <div class="footer-contact">
+                <div><i class="fas fa-map-marker-alt"></i> Địa chỉ: Hòa Bình, Việt Nam</div>
+                <div><i class="fas fa-phone"></i> Hotline: 0836768597</div>
+                <div><i class="fas fa-envelope"></i> Email: contact@truongphatcomputer.com</div>
+            </div>
+            <div class="footer-social">
+                <a href="https://www.facebook.com/tpcom.hb" target="_blank"><i class="fab fa-facebook"></i></a>
+                <a href="#" target="_blank"><i class="fab fa-youtube"></i></a>
+                <a href="#" target="_blank"><i class="fab fa-tiktok"></i></a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 BUILD PC TRUONG PHAT COMPUTER. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div id="to-top-button" class="to-top-button">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- Script for the interactive PC builder -->
+    <script src="./components-data.js"></script>
+    <script src="./buildsan.js" type="module"></script>
+    <!-- Script for Excel export functionality -->
+    <script src="./auto-export-config.js"></script>
+    <!-- Script for enhanced auto-config functionality -->
+    <script src="./auto-config-helper.js"></script>
+    <script>
+        // Load required libraries
+        function loadRequiredLibraries() {
+            return new Promise((resolve, reject) => {
+                // Load Popper.js
+                if (typeof window.Popper === 'undefined') {
+                    const popperScript = document.createElement('script');
+                    popperScript.src = 'https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js';
+                    popperScript.onload = () => {
+                        console.log('Popper.js loaded successfully');
+                        resolve();
+                    };
+                    popperScript.onerror = () => reject(new Error('Failed to load Popper.js'));
+                    document.head.appendChild(popperScript);
+                } else {
+                    resolve();
+                }
+            });
+        }
+
+        // Hàm populateDropdowns
+        function populateDropdowns() {
+            console.log('Initializing dropdowns...');
+            try {
+                // Lấy các dropdown
+                const componentDropdowns = {
+                    'cpu': document.getElementById('cpu'),
+                    'mainboard': document.getElementById('mainboard'),
+                    'vga': document.getElementById('vga'),
+                    'ram': document.getElementById('ram'),
+                    'ssd': document.getElementById('ssd'),
+                    'psu': document.getElementById('psu'),
+                    'case': document.getElementById('case'),
+                    'cpuCooler': document.getElementById('cpuCooler'),
+                    'hdd': document.getElementById('hdd'),
+                    'monitor': document.getElementById('monitor')
+                };
+                
+                // Lấy dữ liệu từ components-data.js
+                const componentsData = {
+                    'cpu': window.cpuData || {},
+                    'mainboard': window.mainboardData || {},
+                    'vga': window.vgaData || {},
+                    'ram': window.ramData || {},
+                    'ssd': window.ssdData || {},
+                    'psu': window.psuData || {},
+                    'case': window.caseData || {},
+                    'cpuCooler': window.cpuCoolerData || {},
+                    'hdd': window.hddData || {},
+                    'monitor': window.monitorData || {}
+                };
+                
+                // Thêm options cho mỗi dropdown từ dữ liệu tương ứng
+                Object.keys(componentDropdowns).forEach(componentType => {
+                    const dropdown = componentDropdowns[componentType];
+                    const data = componentsData[componentType];
+                    
+                    if (dropdown && Object.keys(data).length > 0 && dropdown.options.length <= 1) {
+                        // Xóa tất cả options hiện tại trừ option đầu tiên (thường là placeholder)
+                        const placeholderOption = dropdown.options[0];
+                        dropdown.innerHTML = '';
+                        if (placeholderOption) {
+                            dropdown.appendChild(placeholderOption);
+                        }
+                        
+                        // Thêm options mới từ dữ liệu
+                        Object.keys(data).forEach(key => {
+                            const component = data[key];
+                            const option = document.createElement('option');
+                            option.value = key;
+                            option.text = `${component.name} - ${formatPrice(component.price)} VNĐ`;
+                            dropdown.appendChild(option);
+                        });
+                        
+                        console.log(`Added ${Object.keys(data).length} options to ${componentType} dropdown`);
+                    }
+                });
+                
+                console.log('Dropdowns populated successfully');
+            } catch (error) {
+                console.error('Error in populateDropdowns:', error);
+            }
+        }
+        
+        // Helper function to format price
+        function formatPrice(price) {
+            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Hàm initPerformance cho các thao tác khởi tạo hiệu năng
+        function initPerformance() {
+            console.log('Initializing performance metrics...');
+            try {
+                // Khởi tạo biểu đồ nếu chưa có
+                const performanceChart = document.getElementById('performance-chart');
+                if (performanceChart && typeof Chart !== 'undefined') {
+                    // Kiểm tra xem đã có instance của Chart chưa
+                    if (!window.performanceChartInstance) {
+                        window.performanceChartInstance = new Chart(performanceChart, {
+                            type: 'radar',
+                            data: {
+                                labels: ['Gaming', 'Đồ họa', 'Văn phòng', 'Livestream', 'Render video', 'Đa nhiệm'],
+                                datasets: [{
+                                    label: 'Hiệu năng',
+                                    data: [0, 0, 0, 0, 0, 0],
+                                    fill: true,
+                                    backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                                    borderColor: 'rgb(255, 152, 0)',
+                                    pointBackgroundColor: 'rgb(255, 152, 0)',
+                                    pointBorderColor: '#fff',
+                                    pointHoverBackgroundColor: '#fff',
+                                    pointHoverBorderColor: 'rgb(255, 87, 34)'
+                                }]
+                            },
+                            options: {
+                                elements: {
+                                    line: {
+                                        borderWidth: 3
+                                    }
+                                },
+                                scales: {
+                                    r: {
+                                        suggestedMin: 0,
+                                        suggestedMax: 100
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // Khởi tạo các thành phần hiệu năng khác
+                document.querySelectorAll('.progress-bar').forEach(bar => {
+                    if (!bar.style.width || bar.style.width === '0%') {
+                        bar.style.width = '0%';
+                    }
+                });
+
+                // Kiểm tra và đánh giá hiệu năng nếu có CPU và GPU được chọn
+                const cpuDropdown = document.getElementById('cpu');
+                const vgaDropdown = document.getElementById('vga');
+
+                if (cpuDropdown && vgaDropdown && 
+                    cpuDropdown.value && vgaDropdown.value && 
+                    typeof updateAllPerformanceMetrics === 'function') {
+                    updateAllPerformanceMetrics();
+                }
+
+                console.log('Performance metrics initialized successfully');
+            } catch (error) {
+                console.error('Error initializing performance metrics:', error);
+            }
+        }
+
+        // Xử lý sự kiện tự động chọn cấu hình khi đủ 3 tiêu chí
+        function checkAndRunAutoSelect() {
+            const gameId = document.getElementById('game-genre').value;
+            const budget = parseInt(document.getElementById('budget-range').value);
+            const cpuType = document.getElementById('cpu-type').value;
+            
+            console.log('----------- Auto Select Check -----------');
+            console.log('Game Genre:', gameId || 'not selected');
+            console.log('Budget:', budget ? budget.toLocaleString() + ' VND' : 'not set');
+            console.log('CPU Type:', cpuType || 'not selected');
+            
+            // Check if the CPU type is valid
+            if (cpuType) {
+                console.log('CPU Type normalized:', cpuType.toLowerCase() === 'intel' ? 'Intel' : 'Amd');
+            }
+            
+            // Check if all criteria are met
+            if (gameId && budget && cpuType) {
+                console.log('✅ All criteria met, running autoSelectConfig...');
+                try {
+                    if (typeof autoSelectConfig === 'function') {
+                        // Debug config availability before calling
+                        if (cpuType.toLowerCase() === 'intel' && window.intelConfigs) {
+                            console.log('Available Intel games:', Object.keys(window.intelConfigs));
+                            if (window.intelConfigs[gameId]) {
+                                console.log('Available budgets for this game:', Object.keys(window.intelConfigs[gameId]));
+                            }
+                        } else if (cpuType.toLowerCase() === 'amd' && window.amdConfigs) {
+                            console.log('Available AMD games:', Object.keys(window.amdConfigs));
+                            if (window.amdConfigs[gameId]) {
+                                console.log('Available budgets for this game:', Object.keys(window.amdConfigs[gameId]));
+                            }
+                        }
+                        
+                        const result = autoSelectConfig(gameId, budget, cpuType);
+                        console.log('autoSelectConfig result:', result ? 'Success' : 'Failed');
+                    } else {
+                        console.error('❌ autoSelectConfig function not available');
+                        }
+                } catch (error) {
+                    console.error('❌ Error running autoSelectConfig:', error);
+                }
+            } else {
+                console.log('❌ Not all criteria are met for auto-selection');
+            }
+            console.log('----------- End Auto Select Check -----------');
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await loadRequiredLibraries();
+                populateDropdowns();
+                initPerformance();
+                
+                // Thiết lập các giá trị component cần thiết ở dạng trống
+                const componentCells = {
+                    'cpu-name': '', 'cpu-price': '', 'cpu-total': '',
+                    'mainboard-name': '', 'mainboard-price': '', 'mainboard-total': '',
+                    'ram-name': '', 'ram-price': '', 'ram-total': '',
+                    'vga-name': '', 'vga-price': '', 'vga-total': '',
+                    'ssd-name': '', 'ssd-price': '', 'ssd-total': '',
+                    'cpu-cooler-name': '', 'cpu-cooler-price': '', 'cpu-cooler-total': '',
+                    'psu-name': '', 'psu-price': '', 'psu-total': '',
+                    'case-name': '', 'case-price': '', 'case-total': '',
+                    'additional-component-name': '', 'additional-component-price': '', 'additional-component-total': '',
+                    'monitor-name': '', 'monitor-price': '', 'monitor-total': ''
+                };
+                
+                // Xóa nội dung các ô ban đầu
+                Object.keys(componentCells).forEach(cellId => {
+                    const cell = document.getElementById(cellId);
+                    if (cell) {
+                        cell.textContent = componentCells[cellId];
+                    }
+                });
+                
+                // Xóa nội dung các ô tính tiền
+                document.getElementById('total-price-cell').textContent = '0';
+                document.getElementById('remaining-price-cell').textContent = '0';
+                
+                console.log('Component table initialized with empty values');
+                
+                // Kích hoạt tự động chọn cấu hình sau khi trang được tải
+                setTimeout(() => {
+                    const gameGenre = document.getElementById('game-genre').value;
+                    const budget = parseInt(document.getElementById('budget-range').value);
+                    const cpuType = document.getElementById('cpu-type').value;
+                    
+                    if (gameGenre && budget && cpuType) {
+                        console.log('Initial criteria check for auto-selection:');
+                        console.log('- Game:', gameGenre);
+                        console.log('- Budget:', budget);
+                        console.log('- CPU Type:', cpuType);
+                        
+                        try {
+                            window.autoSelectConfig(gameGenre, budget, cpuType);
+                        } catch (error) {
+                            console.error('Error in initial autoSelectConfig:', error);
+                        }
+                    }
+                }, 1000);
+            } catch (error) {
+                console.error('Error during initialization:', error);
+            }
+        });
+
+        // Game card click handler
+        function handleGameCardClick(gameId) {
+            console.log('Game card clicked:', gameId);
+            try {
+                displayDetailedPerformance(gameId);
+            } catch (error) {
+                console.error('Error displaying game performance:', error);
+            }
+        }
+
+        // JavaScript cho các tính năng mới will be handled in event-handlers.js
+
+        // Fix lỗi trùng lặp khai báo hàm
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fix cho lỗi trùng lặp khai báo hàm trong buildsan.js
+            window.getScoreColor = function(score) {
+                if (score >= 90) return '#2ecc71'; // Excellent - Green
+                if (score >= 70) return '#27ae60'; // Very Good - Dark Green
+                if (score >= 50) return '#f1c40f'; // Good - Yellow
+                if (score >= 30) return '#e67e22'; // Fair - Orange
+                return '#e74c3c'; // Poor - Red
+            };
+            
+            // Định nghĩa lại hàm getScoreColor để tránh lỗi trùng lặp
+            Object.defineProperty(window, 'getScoreColor', {
+                value: window.getScoreColor,
+                writable: false,
+                configurable: false
+            });
+            
+            // Fix cho lỗi Cannot set property top of #<Window>
+            const readOnlyProps = ['top', 'parent', 'self', 'window', 'frames', 'location'];
+            readOnlyProps.forEach(prop => {
+                try {
+                    const descriptor = Object.getOwnPropertyDescriptor(window, prop);
+                    if (descriptor && !descriptor.configurable) {
+                        console.log(`Property ${prop} is read-only, applying fix`);
+                        
+                        // Tạo proxy để bắt tất cả attempts để set thuộc tính
+                        const originalValue = window[prop];
+                        Object.defineProperty(window, prop + '_safe', {
+                            get: () => originalValue,
+                            set: () => console.warn(`Cannot set read-only property: ${prop}`),
+                            configurable: true
+                        });
+                    }
+                } catch (e) {
+                    console.warn(`Error setting up fix for property ${prop}:`, e);
+                }
+            });
+            
+            // Fix cho call stack size exceeded
+            if (typeof window.getComputedStyle !== 'function' || window._originalGetComputedStyle) return;
+            
+            window._originalGetComputedStyle = window.getComputedStyle;
+            window.getComputedStyle = function(element, pseudoElt) {
+                if (!element) return {};
+                
+                try {
+                    // Avoid recursion for problematic elements
+                    if (element instanceof HTMLCanvasElement) {
+                        return {
+                            getPropertyValue: function() { return ''; }
+                        };
+                    }
+                    
+                    return window._originalGetComputedStyle(element, pseudoElt);
+                } catch (e) {
+                    console.error('Error in getComputedStyle override:', e);
+                    return {};
+                }
+            };
+        });
+
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const icon = this.querySelector('i');
+                if(document.body.classList.contains('dark-mode')) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+        }
+
+        // Khởi tạo smoothscroll cho Safari/iOS
+        if (window.smoothscrollPolyfill) smoothscrollPolyfill.polyfill();
+        // Khởi tạo ripple effect cho button
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.MaterialRipple) {
+                document.querySelectorAll('button, .action-button, .primary-btn, .secondary-btn, .accent-btn').forEach(btn => {
+                    new window.MaterialRipple(btn);
+                });
+            }
+            // Thêm hiệu ứng animate cho card, modal, button
+            document.querySelectorAll('.component, .component-card, .modal, .action-button, .primary-btn, .secondary-btn, .accent-btn').forEach(el => {
+                el.classList.add('animate__animated','animate__fadeInUp');
+            });
+        });
+
+        // --- Progress Stepper Real-time Highlight ---
+        function updateProgressSteps() {
+            // Bước 1: Ngân sách
+            const budgetValue = document.getElementById('budget-range').value;
+            const step1 = document.querySelector('.progress-step[data-step="1"]');
+            if (budgetValue && parseInt(budgetValue) > 0) {
+                step1.classList.add('active');
+            } else {
+                step1.classList.remove('active');
+            }
+            // Bước 2: CPU
+            const cpuType = document.getElementById('cpu-type').value;
+            const step2 = document.querySelector('.progress-step[data-step="2"]');
+            if (cpuType) {
+                step2.classList.add('active');
+            } else {
+                step2.classList.remove('active');
+            }
+            // Bước 3: Game
+            const gameGenre = document.getElementById('game-genre').value;
+            const step3 = document.querySelector('.progress-step[data-step="3"]');
+            if (gameGenre) {
+                step3.classList.add('active');
+            } else {
+                step3.classList.remove('active');
+            }
+            // Bước 4: Linh kiện (chỉ cần chọn 1 linh kiện)
+            const cpu = document.getElementById('cpu').value;
+            const vga = document.getElementById('vga').value;
+            const step4 = document.querySelector('.progress-step[data-step="4"]');
+            if (cpu && vga) {
+                step4.classList.add('active');
+            } else {
+                step4.classList.remove('active');
+            }
+            // Bước 5: Hoàn thành (nếu tất cả các bước trên đã chọn)
+            const step5 = document.querySelector('.progress-step[data-step="5"]');
+            if (step1.classList.contains('active') && step2.classList.contains('active') && step3.classList.contains('active') && step4.classList.contains('active')) {
+                step5.classList.add('active');
+            } else {
+                step5.classList.remove('active');
+            }
+        }
+        // Lắng nghe sự kiện thay đổi
+        ['budget-range','cpu-type','game-genre','cpu','vga'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', updateProgressSteps);
+        });
+        // Lắng nghe click vào game-card để cập nhật ngay
+        const gameCards = document.querySelectorAll('.game-card');
+        gameCards.forEach(card => card.addEventListener('click', updateProgressSteps));
+        // Gọi lần đầu khi load trang
+        updateProgressSteps();
+    </script>
+    <!-- Script kết nối các component -->
+    <script src="component-connector.js"></script>
+    
+    <!-- Event handlers script -->
+    <script src="event-handlers.js"></script>
+
+    <!-- Script for modal close button functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fix for modal close button
+            const fixModalCloseButtons = function() {
+                const modal = document.querySelector('.modal');
+                if (!modal) return;
+                
+                // Find all close buttons
+                const closeButtons = modal.querySelectorAll('.close-modal, .close');
+                
+                closeButtons.forEach(button => {
+                    // Remove existing event listeners
+                    const newButton = button.cloneNode(true);
+                    if (button.parentNode) {
+                        button.parentNode.replaceChild(newButton, button);
+                    }
+                    
+                    // Add new event listener
+                    newButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Close button clicked');
+                        
+                        // Hide the modal
+                        if (modal) {
+                            modal.style.display = 'none';
+                        }
+                        
+                        return false;
+                    });
+                });
+                
+                // Also close when clicking outside the modal
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            };
+            
+            // Run initially
+            fixModalCloseButtons();
+            
+            // Also run when certain buttons are clicked
+            const modalTriggerButtons = document.querySelectorAll('#view-breakdown, #calculate-button');
+            modalTriggerButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Give time for the modal to open
+                    setTimeout(fixModalCloseButtons, 100);
+                });
+            });
+        });
+    </script>
+
+    <!-- Scripts tải không đồng bộ ở cuối trang -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/tippy.js@6" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tippy.js@6/dist/tippy.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" media="print" onload="this.media='all'"/>
+    <script src="https://cdn.jsdelivr.net/npm/smoothscroll-polyfill@0.4.4/dist/smoothscroll.min.js" defer></script>
+    <script src="./modal-handler.js" defer></script>
+    
+    <!-- Scripts tối ưu hiệu suất -->
+    <script src="./image-optimizer.js" defer></script>
+    <script src="./css-optimizer.js" defer></script>
+    <script src="./compression.js" defer></script>
+
+    <!-- Thêm các script modules -->
+    <script type="module" src="js/data/cpu.js"></script>
+    <script type="module" src="js/data/mainboard.js"></script>
+    <script type="module" src="js/data/vga.js"></script>
+    <script type="module" src="js/data/ram.js"></script>
+    <script type="module" src="js/data/ssd.js"></script>
+    <script type="module" src="js/data/psu.js"></script>
+    <script type="module" src="js/data/case.js"></script>
+    <script type="module" src="js/data/cpuCooler.js"></script>
+    <script type="module" src="js/data/hdd.js"></script>
+    <script type="module" src="js/data/monitor.js"></script>
+    <script src="js/configs/index.js" type="module"></script>
+    
+    <!-- Expose configs and getConfig to window for non-module scripts -->
+    <script type="module">
+        import { getConfig, intelConfigs, amdConfigs } from './js/configs/index.js';
+        
+        // Expose to window object immediately
+        window.getConfig = getConfig;
+        window.intelConfigs = intelConfigs;
+        window.amdConfigs = amdConfigs;
+        
+        console.log('✅ Configs và getConfig đã được đăng ký vào window object');
+        console.log('- Intel games:', Object.keys(intelConfigs));
+        console.log('- AMD games:', Object.keys(amdConfigs));
+        
+        // Kiểm tra hàm getConfig
+        window.testGetConfig = function() {
+            const configs = {
+                intel: window.getConfig('Intel', 'pubg', '3M'),
+                amd: window.getConfig('Amd', 'pubg', '3M')
+            };
+            console.log('TEST getConfig results:', configs);
+            return configs;
+        };
+        
+        // Tự động chạy một test
+        setTimeout(() => {
+            console.log('Running config test...');
+            window.testGetConfig();
+        }, 1000);
+    </script>
+
+    <!-- Nút hiển thị cấu hình đã chọn -->
+    <div class="d-grid gap-2 mt-4">
+        <button type="button" id="calculate-button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#configModal">
+            <i class="bi bi-list-check me-2"></i> Xem Cấu Hình Đã Chọn
+        </button>
+    </div>
+
+    <!-- Script để tự động hiển thị cấu hình -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Đảm bảo nút tính toán có thể được nhấn tự động
+            const calculateButton = document.getElementById('calculate-button');
+            if (calculateButton) {
+                console.log('✅ Calculate button found and ready for automatic trigger');
+            }
+            
+            // Thêm một trình lắng nghe sự kiện cho CPU type dropdown để theo dõi các thay đổi
+            const cpuTypeDropdown = document.getElementById('cpu-type');
+            if (cpuTypeDropdown) {
+                cpuTypeDropdown.addEventListener('change', function() {
+                    console.log('CPU type changed to:', this.value);
+                    
+                    // Ghi nhớ giá trị CPU type vào local storage
+                    localStorage.setItem('selectedCpuType', this.value);
+                    
+                    // Thêm class màu sắc cho body để biểu thị loại CPU
+                    if (this.value === 'Intel') {
+                        document.body.classList.remove('amd-mode');
+                        document.body.classList.add('intel-mode');
+                    } else {
+                        document.body.classList.remove('intel-mode');
+                        document.body.classList.add('amd-mode');
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- JavaScript to create and update CPU mode indicator -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create CPU mode indicator
+            const indicator = document.createElement('div');
+            indicator.id = 'cpu-mode-indicator';
+            indicator.textContent = 'CPU MODE: INTEL';
+            document.body.appendChild(indicator);
+            
+            // Set default mode
+            document.body.classList.add('intel-mode');
+            
+            // Update indicator when CPU type changes
+            const cpuTypeDropdown = document.getElementById('cpu-type');
+            if (cpuTypeDropdown) {
+                cpuTypeDropdown.addEventListener('change', function() {
+                    // Remove existing mode classes
+                    document.body.classList.remove('intel-mode', 'amd-mode');
+                    
+                    // Add appropriate class
+                    if (this.value === 'Intel') {
+                        document.body.classList.add('intel-mode');
+                        indicator.textContent = 'CPU MODE: INTEL';
+                    } else if (this.value === 'Amd') {
+                        document.body.classList.add('amd-mode');
+                        indicator.textContent = 'CPU MODE: AMD';
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Simple ripple effect fallback in case CDN fails -->
+    <script>
+        // Simple ripple effect implementation that doesn't rely on external library
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create our own MaterialRipple implementation
+            window.MaterialRipple = function(element) {
+                if (!element) return;
+                
+                // Add ripple container if needed
+                let rippleContainer = element.querySelector('.ripple-container');
+                if (!rippleContainer) {
+                    rippleContainer = document.createElement('div');
+                    rippleContainer.className = 'ripple-container';
+                    rippleContainer.style.position = 'absolute';
+                    rippleContainer.style.top = '0';
+                    rippleContainer.style.left = '0';
+                    rippleContainer.style.height = '100%';
+                    rippleContainer.style.width = '100%';
+                    rippleContainer.style.overflow = 'hidden';
+                    rippleContainer.style.pointerEvents = 'none';
+                    rippleContainer.style.borderRadius = 'inherit';
+                    
+                    // Make sure the element has position relative
+                    const computedStyle = getComputedStyle(element);
+                    if (computedStyle.position !== 'relative' && computedStyle.position !== 'absolute') {
+                        element.style.position = 'relative';
+                    }
+                    
+                    element.appendChild(rippleContainer);
+                }
+                
+                element.addEventListener('mousedown', function(e) {
+                    createRipple(e, rippleContainer);
+                });
+                
+                element.addEventListener('touchstart', function(e) {
+                    createRipple(e.touches[0], rippleContainer);
+                });
+            };
+            
+            function createRipple(event, container) {
+                // Don't create ripple if already processing one
+                if (container.querySelector('.ripple-effect')) {
+                    const existingRipple = container.querySelector('.ripple-effect');
+                    existingRipple.remove();
+                }
+                
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple-effect';
+                
+                // Get the largest dimension
+                const rect = container.getBoundingClientRect();
+                const rippleSize = Math.max(rect.width, rect.height) * 2;
+                
+                ripple.style.width = rippleSize + 'px';
+                ripple.style.height = rippleSize + 'px';
+                ripple.style.position = 'absolute';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(255, 255, 255, 0.4)';
+                ripple.style.transform = 'scale(0)';
+                ripple.style.pointerEvents = 'none';
+                ripple.style.transition = 'transform 0.5s, opacity 0.5s';
+                
+                // Position the ripple
+                const x = event.clientX - rect.left - (rippleSize / 2);
+                const y = event.clientY - rect.top - (rippleSize / 2);
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                
+                // Add to container
+                container.appendChild(ripple);
+                
+                // Start animation
+                setTimeout(() => {
+                    ripple.style.transform = 'scale(1)';
+                    ripple.style.opacity = '0';
+                }, 10);
+                
+                // Clean up
+                setTimeout(() => {
+                    if (ripple && ripple.parentNode) {
+                        ripple.parentNode.removeChild(ripple);
+                    }
+                }, 500);
+            }
+            
+            // Apply to all buttons
+            const elements = document.querySelectorAll('button, .btn, .action-button, .primary-btn, .secondary-btn, .accent-btn');
+            elements.forEach(function(element) {
+                new MaterialRipple(element);
+            });
+            
+            console.log('Custom ripple effect initialized');
+        });
+    </script>
+
+    <!-- Make sure to load configurations before the main scripts -->
+    <script src="js/configs/index.js" type="module"></script>
+
+    <!-- Add this to ensure handleCpuTypeSelection is available -->
+    <script>
+        // Make sure handleCpuTypeSelection is always available
+        window.ensureHandleCpuTypeSelectionAvailable = function() {
+            if (typeof window.handleCpuTypeSelection !== 'function') {
+                console.log('Creating fallback handleCpuTypeSelection function');
+                window.handleCpuTypeSelection = function(cpuType) {
+                    console.log(`Fallback handleCpuTypeSelection called with: ${cpuType}`);
+                    
+                    // Update dropdown
+                    const cpuTypeDropdown = document.getElementById('cpu-type');
+                    if (cpuTypeDropdown) {
+                        cpuTypeDropdown.value = cpuType;
+                        
+                        // Trigger change event
+                        try {
+                            const event = new Event('change', { bubbles: true });
+                            cpuTypeDropdown.dispatchEvent(event);
+                        } catch (e) {
+                            console.error('Error dispatching change event:', e);
+                        }
+                    }
+                    
+                    // Update body attributes and classes
+                    document.body.setAttribute('data-selected-cpu-type', cpuType);
+                    document.body.classList.remove('intel-mode', 'amd-mode');
+                    document.body.classList.add(cpuType.toLowerCase() + '-mode');
+                    localStorage.setItem('selectedCpuType', cpuType);
+                    
+                    // Update visual indicators
+                    const intelOption = document.getElementById('intel-option');
+                    const amdOption = document.getElementById('amd-option');
+                    
+                    if (intelOption && amdOption) {
+                        if (cpuType === 'Intel') {
+                            intelOption.classList.add('selected');
+                            amdOption.classList.remove('selected');
+                        } else {
+                            amdOption.classList.add('selected');
+                            intelOption.classList.remove('selected');
+                        }
+                    }
+                    
+                    // Try to update configs if possible
+                    if (typeof window.autoSelectConfig === 'function') {
+                        const gameDropdown = document.getElementById('game-genre');
+                        const budgetRange = document.getElementById('budget-range');
+                        
+                        if (gameDropdown && gameDropdown.value && budgetRange && budgetRange.value) {
+                            const gameId = gameDropdown.value;
+                            const budget = parseInt(budgetRange.value);
+                            console.log(`Auto-selecting config: game=${gameId}, budget=${budget}, cpu=${cpuType}`);
+                            window.autoSelectConfig(gameId, budget, cpuType);
+                        }
+                    }
+                };
+            }
+        };
+        
+        // Run this on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            window.ensureHandleCpuTypeSelectionAvailable();
+            
+            // Also run after a short delay to ensure it's set even if other scripts remove it
+            setTimeout(window.ensureHandleCpuTypeSelectionAvailable, 1000);
+        });
+    </script>
+
+    <!-- Add game selection handler -->
+    <script>
+        // Make sure game selection properly triggers auto-select
+        document.addEventListener('DOMContentLoaded', function() {
+            const gameGenreDropdown = document.getElementById('game-genre');
+            if (gameGenreDropdown) {
+                gameGenreDropdown.addEventListener('change', function() {
+                    console.log("Game selection changed to:", this.value);
+                    
+                    // Get budget and CPU type
+                    const budget = parseInt(document.getElementById('budget-range').value);
+                    const cpuType = document.getElementById('cpu-type').value;
+                    
+                    if (this.value && budget && cpuType) {
+                        console.log(`Calling autoSelectConfig with game=${this.value}, budget=${budget}, cpuType=${cpuType}`);
+                        
+                        // Ensure autoSelectConfig is available
+                        if (typeof window.autoSelectConfig === 'function') {
+                            window.autoSelectConfig(this.value, budget, cpuType);
+                        } else {
+                            console.error("autoSelectConfig function not available");
+                        }
+                    } else {
+                        console.log("Not enough data for auto-select:", {
+                            game: this.value,
+                            budget: budget,
+                            cpuType: cpuType
+                        });
+                    }
+                });
+                
+                console.log("✅ Game selection change handler added");
+            } else {
+                console.error("❌ Game genre dropdown not found");
+            }
+            
+            // Also handle budget changes
+            const budgetRange = document.getElementById('budget-range');
+            if (budgetRange) {
+                budgetRange.addEventListener('change', function() {
+                    console.log("Budget changed to:", this.value);
+                    
+                    // Get game and CPU type
+                    const game = document.getElementById('game-genre').value;
+                    const cpuType = document.getElementById('cpu-type').value;
+                    
+                    if (game && this.value && cpuType) {
+                        console.log(`Calling autoSelectConfig with game=${game}, budget=${this.value}, cpuType=${cpuType}`);
+                        
+                        // Ensure autoSelectConfig is available
+                        if (typeof window.autoSelectConfig === 'function') {
+                            window.autoSelectConfig(game, parseInt(this.value), cpuType);
+                        } else {
+                            console.error("autoSelectConfig function not available");
+                        }
+                    }
+                });
+                
+                console.log("✅ Budget change handler added");
+            }
+        });
+    </script>
+</body>
+
+</html>

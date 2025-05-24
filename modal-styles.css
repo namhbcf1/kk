@@ -1,0 +1,784 @@
+/* Modal Styles - Cải thiện giao diện cho các popup */
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.85); /* Làm tối hơn */
+  animation: fadeIn 0.3s;
+  backdrop-filter: blur(3px); /* Tăng độ mờ */
+}
+
+.modal.show {
+  display: block;
+}
+
+.modal-content {
+  position: relative;
+  background-color: #242424; /* Nền tối */
+  margin: 3% auto;
+  padding: 25px;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  width: 85%;
+  max-width: 900px;
+  animation: slideDown 0.4s;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: #f5f5f5; /* Màu chữ sáng */
+}
+
+/* Thiết kế header rõ ràng hơn */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #444;
+  position: relative;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.modal-header h2 i {
+  margin-right: 10px;
+  color: #3498db;
+}
+
+/* Thiết kế nút đóng */
+.close-modal {
+  display: block !important; /* Đảm bảo hiển thị */
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  color: #ddd;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s;
+  z-index: 1100; /* Đảm bảo nút đóng luôn hiển thị */
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  border-radius: 50%;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+  color: #e74c3c;
+  text-decoration: none;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Cũng áp dụng cho .close để tránh xung đột */
+.close {
+  display: block !important;
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  color: #ddd;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s;
+  z-index: 1100;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  border-radius: 50%;
+}
+
+.close:hover,
+.close:focus {
+  color: #e74c3c;
+  text-decoration: none;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Thiết kế nội dung */
+.modal-body {
+  padding: 0;
+}
+
+/* Cải thiện bảng chi tiết cấu hình */
+.config-detail-table, 
+.modal table,
+.config-table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+  background-color: #181818 !important;
+  border: 1px solid #222 !important;
+}
+
+.config-detail-table th, 
+.config-detail-table td,
+.modal th, 
+.modal td,
+.config-table th,
+.config-table td {
+  border: none;
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 14px;
+  background-color: #222 !important;
+  color: #f0f0f0;
+  border: 1px solid #333 !important;
+}
+
+/* Header bảng modal màu xanh dương nhạt */
+.config-detail-table th,
+.modal th,
+.config-table th {
+  background-color: #2196F3 !important;
+  color: #fff !important;
+  border: 1px solid #333 !important;
+  font-weight: 700;
+}
+
+.config-detail-table tr,
+.modal tr,
+.config-table tr {
+  background-color: #222 !important;
+}
+
+.config-detail-table tr:hover,
+.modal tr:hover,
+.config-table tr:hover {
+  background-color: #2a2a2a !important;
+}
+
+/* Hiệu ứng cho các ô td */
+.config-detail-table td,
+.modal td,
+.config-table td {
+  transition: all 0.2s;
+  border-bottom: 1px solid #333;
+}
+
+/* Cột LOẠI */
+.config-detail-table th:nth-child(1),
+.modal th:nth-child(1),
+.config-table th:nth-child(1) {
+  width: 10%;
+  text-align: center;
+}
+
+/* Cột HÌNH ẢNH */
+.config-detail-table th:nth-child(2),
+.modal th:nth-child(2),
+.config-table th:nth-child(2) {
+  width: 15%;
+  text-align: center;
+}
+
+.config-detail-table td:nth-child(2),
+.modal td:nth-child(2),
+.config-table td:nth-child(2) {
+  text-align: center;
+  padding: 10px 5px;
+}
+
+/* Cột TÊN LINH KIỆN */
+.config-detail-table th:nth-child(3),
+.modal th:nth-child(3),
+.config-table th:nth-child(3) {
+  width: 40%;
+}
+
+/* Cột GIÁ TIỀN */
+.config-detail-table th:nth-child(4),
+.modal th:nth-child(4),
+.config-table th:nth-child(4) {
+  width: 15%;
+  text-align: right;
+}
+
+.config-detail-table td:nth-child(4),
+.modal td:nth-child(4),
+.config-table td:nth-child(4) {
+  text-align: right;
+  font-weight: 600;
+  color: #ff6b6b; /* Đổi màu giá đỏ sáng hơn */
+}
+
+/* Cột BẢO HÀNH */
+.config-detail-table th:nth-child(5),
+.modal th:nth-child(5),
+.config-table th:nth-child(5) {
+  width: 10%;
+  text-align: center;
+}
+
+.config-detail-table td:nth-child(5),
+.modal td:nth-child(5),
+.config-table td:nth-child(5) {
+  text-align: center;
+  color: #2ecc71; /* Xanh lá */
+  font-weight: 600;
+}
+
+/* Cột TÌNH TRẠNG */
+.config-detail-table th:nth-child(6),
+.modal th:nth-child(6),
+.config-table th:nth-child(6) {
+  width: 10%;
+  text-align: center;
+}
+
+.config-detail-table td:nth-child(6),
+.modal td:nth-child(6),
+.config-table td:nth-child(6) {
+  text-align: center;
+  color: #3498db; /* Xanh */
+  font-weight: 600;
+}
+
+/* Cải thiện hiển thị hình ảnh */
+.config-detail-table img,
+.modal img,
+.config-table img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: block;
+  margin: 0 auto;
+}
+
+.config-detail-table img:hover,
+.modal img:hover,
+.config-table img:hover {
+  transform: scale(2.5);
+  z-index: 100;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Component image wrapper */
+.component-image-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Header màu xanh dương như ảnh mẫu */
+.config-detail-table thead tr th,
+.modal thead tr th,
+.config-table thead tr th {
+  background-color: #2196F3 !important;
+  color: white !important;
+  font-weight: bold;
+  text-align: center !important;
+  vertical-align: middle !important;
+  padding: 10px 5px !important;
+  border: 1px solid #222 !important;
+}
+
+/* Đảm bảo các td có màu nền tối */
+.config-detail-table tbody td,
+.modal tbody td,
+.config-table tbody td {
+  background-color: #222 !important;
+  border: 1px solid #333 !important;
+  vertical-align: middle;
+  padding: 8px 5px !important;
+}
+
+/* Cột STT */
+.config-table th:nth-child(1),
+.config-table td:nth-child(1),
+.config-detail-table th:nth-child(1),
+.config-detail-table td:nth-child(1),
+.modal th:nth-child(1),
+.modal td:nth-child(1) {
+  width: 40px;
+  text-align: center;
+  color: #f0f0f0;
+  font-weight: bold;
+}
+
+/* Cột Hình ảnh */
+.config-table th:nth-child(2),
+.config-table td:nth-child(2),
+.config-detail-table th:nth-child(2),
+.config-detail-table td:nth-child(2),
+.modal th:nth-child(2),
+.modal td:nth-child(2) {
+  width: 80px;
+  text-align: center;
+  padding: 5px !important;
+}
+
+/* Cột Tên, mã, loại linh kiện */
+.config-table th:nth-child(3),
+.config-table td:nth-child(3),
+.config-detail-table th:nth-child(3),
+.config-detail-table td:nth-child(3),
+.modal th:nth-child(3),
+.modal td:nth-child(3) {
+  width: 200px;
+  min-width: 180px;
+  max-width: 300px;
+  word-break: break-word;
+  text-align: left;
+}
+
+/* Cột Đvt */
+.config-table th:nth-child(4),
+.config-table td:nth-child(4),
+.config-detail-table th:nth-child(4),
+.config-detail-table td:nth-child(4),
+.modal th:nth-child(4),
+.modal td:nth-child(4) {
+  width: 60px;
+  text-align: center;
+}
+
+/* Cột Số lượng */
+.config-table th:nth-child(5),
+.config-table td:nth-child(5),
+.config-detail-table th:nth-child(5),
+.config-detail-table td:nth-child(5),
+.modal th:nth-child(5),
+.modal td:nth-child(5) {
+  width: 50px;
+  text-align: center;
+}
+
+/* Cột Đơn giá */
+.config-table th:nth-child(6),
+.config-table td:nth-child(6),
+.config-detail-table th:nth-child(6),
+.config-detail-table td:nth-child(6),
+.modal th:nth-child(6),
+.modal td:nth-child(6) {
+  width: 100px;
+  text-align: right;
+  color: #4fc3f7;
+  font-weight: 600;
+}
+
+/* Cột Thành tiền */
+.config-table th:nth-child(7),
+.config-table td:nth-child(7),
+.config-detail-table th:nth-child(7),
+.config-detail-table td:nth-child(7),
+.modal th:nth-child(7),
+.modal td:nth-child(7) {
+  width: 100px;
+  text-align: right;
+  color: #4fc3f7;
+  font-weight: 600;
+}
+
+/* Cột Bảo hành */
+.config-table th:nth-child(8),
+.config-table td:nth-child(8),
+.config-detail-table th:nth-child(8),
+.config-detail-table td:nth-child(8),
+.modal th:nth-child(8),
+.modal td:nth-child(8) {
+  width: 70px;
+  text-align: center;
+  color: #2ecc71;
+  font-weight: 600;
+}
+
+/* Cột Ghi chú */
+.config-table th:nth-child(9),
+.config-table td:nth-child(9),
+.config-detail-table th:nth-child(9),
+.config-detail-table td:nth-child(9),
+.modal th:nth-child(9),
+.modal td:nth-child(9) {
+  width: 70px;
+  text-align: center;
+  color: #2ecc71;
+  font-weight: 600;
+}
+
+/* Dòng tổng cộng */
+.config-table .total-row td,
+.config-detail-table .total-row td,
+.modal .total-row td {
+  background-color: #1a1a1a !important;
+  border-top: 1px solid #444 !important;
+  font-weight: bold;
+}
+
+/* Giá trị tổng cộng */
+.config-table .total-row td:nth-child(7),
+.config-detail-table .total-row td:nth-child(7),
+.modal .total-row td:nth-child(7) {
+  color: #ff6b6b;
+}
+
+/* Màu nền cho bảng chính */
+.config-table {
+  background-color: #242424 !important;
+  color: #f5f5f5;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  margin-top: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.config-table table {
+  background-color: #242424 !important;
+}
+
+.config-table.fixed-bottom {
+  background-color: #242424 !important;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+/* Màu nền các hàng lẻ-chẵn để dễ nhận biết */
+.config-table tr:nth-child(odd) td {
+  background-color: #2a2a2a !important;
+}
+
+.config-table tr:nth-child(even) td {
+  background-color: #222 !important;
+}
+
+/* Hover effect */
+.config-table tr:hover td {
+  background-color: #333 !important;
+}
+
+/* Responsive cho bảng */
+@media screen and (max-width: 900px) {
+  .config-table th:nth-child(3),
+  .config-table td:nth-child(3),
+  .config-detail-table th:nth-child(3),
+  .config-detail-table td:nth-child(3),
+  .modal th:nth-child(3),
+  .modal td:nth-child(3) {
+    width: 150px;
+    min-width: 100px;
+    max-width: 200px;
+  }
+  
+  .config-table th:nth-child(2),
+  .config-table td:nth-child(2),
+  .config-detail-table th:nth-child(2),
+  .config-detail-table td:nth-child(2),
+  .modal th:nth-child(2),
+  .modal td:nth-child(2) {
+    width: 60px;
+  }
+  
+  .config-table img,
+  .config-detail-table img,
+  .modal img {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .component-image-wrapper {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-80px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    margin: 5% auto;
+    padding: 20px;
+  }
+  
+  .config-detail-table th, 
+  .config-detail-table td,
+  .modal th, 
+  .modal td,
+  .config-table th,
+  .config-table td {
+    padding: 8px;
+    font-size: 12px;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.4rem;
+  }
+  
+  .share-button {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+/* System message styles */
+.system-message {
+  margin: 15px 0;
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: none;
+  background-color: #333;
+}
+
+#socket-message {
+  background-color: #483C00;
+  border-left: 4px solid #ffc107;
+  color: #ffe083;
+}
+
+#score-message {
+  background-color: #0A3449;
+  border-left: 4px solid #3498db;
+  color: #8cd3fc;
+}
+
+#upgrade-message {
+  background-color: #183823;
+  border-left: 4px solid #28a745;
+  color: #8bffb1;
+}
+
+.system-message strong {
+  font-weight: 600;
+}
+
+/* Config table styles */
+.config-table {
+  margin-top: 30px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+  background-color: #242424;
+}
+
+.config-table table {
+  width: 100%;
+  border-collapse: collapse;
+  border: none;
+}
+
+.config-table th {
+  background-color: #1a5f95;
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 13px;
+  padding: 12px 15px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.config-table td {
+  padding: 12px 15px;
+  border: 1px solid #444;
+  text-align: left;
+  font-size: 14px;
+  color: #f0f0f0;
+}
+
+.config-table tr {
+  background-color: #222 !important;
+}
+
+.config-table tr:hover {
+  background-color: #2a2a2a !important;
+}
+
+/* Special rows */
+.config-table .total-row td {
+  background-color: #333;
+  font-weight: 600;
+  border-top: 2px solid #1a5f95;
+}
+
+.config-table #total-price-cell,
+.config-table #remaining-price-cell {
+  color: #ff6b6b;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Component name cells */
+.config-table [id$="-name"] {
+  font-weight: 500;
+  color: #f0f0f0;
+}
+
+/* Price cells */
+.config-table [id$="-price"],
+.config-table [id$="-total"] {
+  text-align: right;
+  font-family: 'Roboto Mono', monospace, sans-serif;
+  color: #ff6b6b;
+}
+
+/* Tổng cộng nổi bật hơn */
+#modal-total-price {
+  font-weight: bold;
+  margin: 25px 0;
+  text-align: right;
+  font-size: 1.3em;
+  color: #ff6b6b;
+  padding: 15px;
+  background-color: #181818 !important;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  border: 1px solid #222 !important;
+}
+
+/* Cải thiện nút chia sẻ và tải */
+.share-options {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.share-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #3498db;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.share-button:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.share-button i {
+  font-size: 1.1em;
+}
+
+/* Nút Facebook */
+.share-button:nth-child(1) {
+  background-color: #4267B2;
+}
+.share-button:nth-child(1):hover {
+  background-color: #365899;
+}
+
+/* Nút copy link */
+.share-button:nth-child(2) {
+  background-color: #34495e;
+}
+.share-button:nth-child(2):hover {
+  background-color: #2c3e50;
+}
+
+/* Nút download */
+.share-button:nth-child(3) {
+  background-color: #27ae60;
+}
+.share-button:nth-child(3):hover {
+  background-color: #219653;
+}
+
+/* Fallback cho hình ảnh bị lỗi */
+.config-detail-table img[src*="404"],
+.modal img[src*="404"],
+.config-table img[src*="404"],
+.config-detail-table img[src=""],
+.modal img[src=""],
+.config-table img[src=""] {
+  position: relative;
+  min-width: 50px;
+  min-height: 50px;
+}
+
+.config-detail-table img[src*="404"]:before,
+.modal img[src*="404"]:before,
+.config-table img[src*="404"]:before,
+.config-detail-table img[src=""]:before,
+.modal img[src=""]:before,
+.config-table img[src=""]:before {
+  content: attr(alt);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #333;
+  color: #fff;
+  font-size: 11px;
+  text-align: center;
+  border-radius: 0;
+}
+
+/* Placeholder for missing images */
+.component-image-placeholder {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #333;
+  color: #fff;
+  font-size: 11px;
+  border-radius: 0;
+  margin: 0 auto;
+} 

@@ -1,0 +1,1393 @@
+// Import dữ liệu linh kiện từ các file riêng lẻ
+import {
+    cpuData,
+    mainboardData,
+    vgaData,
+    ramData,
+    ssdData,
+    psuData,
+    caseData,
+    cpuCoolerData,
+    monitorData,
+    hddData
+} from './js/data/index.js';
+
+// Import các cấu hình budget từ module configs
+import { getConfig, intelConfigs, amdConfigs } from './js/configs/index.js';
+
+// Đảm bảo các biến đánh giá hiệu năng là biến toàn cục - Fix cho Chrome
+
+// Define GAME_FPS_ESTIMATES object
+window.GAME_FPS_ESTIMATES = {
+    'lol': {
+        low: { fps: '120-180', description: 'Cài đặt thấp' },
+        medium: { fps: '100-140', description: 'Cài đặt trung bình' },
+        high: { fps: '80-120', description: 'Cài đặt cao' },
+        ultra: { fps: '60-100', description: 'Cài đặt tối đa' },
+        notes: 'Game nhẹ, chạy tốt với hầu hết cấu hình.'
+    },
+    'valorant': {
+        low: { fps: '144-240', description: 'Cài đặt thấp' },
+        medium: { fps: '120-180', description: 'Cài đặt trung bình' },
+        high: { fps: '100-144', description: 'Cài đặt cao' },
+        ultra: { fps: '90-120', description: 'Cài đặt tối đa' },
+        notes: 'Game tối ưu tốt, cần CPU mạnh để đạt FPS cao.'
+    },
+    'csgo': {
+        low: { fps: '180-300', description: 'Cài đặt thấp' },
+        medium: { fps: '150-250', description: 'Cài đặt trung bình' },
+        high: { fps: '120-200', description: 'Cài đặt cao' },
+        ultra: { fps: '100-180', description: 'Cài đặt tối đa' },
+        notes: 'Game phụ thuộc nhiều vào CPU.'
+    },
+    'pubg': {
+        low: { fps: '80-120', description: 'Cài đặt thấp' },
+        medium: { fps: '60-100', description: 'Cài đặt trung bình' },
+        high: { fps: '50-80', description: 'Cài đặt cao' },
+        ultra: { fps: '40-60', description: 'Cài đặt tối đa' },
+        notes: 'Game đòi hỏi cả CPU và GPU mạnh.'
+    },
+    'gta-v': {
+        low: { fps: '70-100', description: 'Cài đặt thấp' },
+        medium: { fps: '60-80', description: 'Cài đặt trung bình' },
+        high: { fps: '45-70', description: 'Cài đặt cao' },
+        ultra: { fps: '35-60', description: 'Cài đặt tối đa' },
+        notes: 'Game đòi hỏi cả CPU và GPU mạnh, VRAM cao.'
+    },
+    'fortnite': {
+        low: { fps: '120-180', description: 'Cài đặt thấp' },
+        medium: { fps: '90-140', description: 'Cài đặt trung bình' },
+        high: { fps: '70-100', description: 'Cài đặt cao' },
+        ultra: { fps: '60-90', description: 'Cài đặt tối đa' },
+        notes: 'Game tối ưu tốt, cần GPU tốt cho cài đặt cao.'
+    },
+    'apex': {
+        low: { fps: '100-140', description: 'Cài đặt thấp' },
+        medium: { fps: '80-120', description: 'Cài đặt trung bình' },
+        high: { fps: '60-90', description: 'Cài đặt cao' },
+        ultra: { fps: '50-70', description: 'Cài đặt tối đa' },
+        notes: 'Game đòi hỏi GPU mạnh.'
+    },
+    'dota2': {
+        low: { fps: '120-180', description: 'Cài đặt thấp' },
+        medium: { fps: '100-150', description: 'Cài đặt trung bình' },
+        high: { fps: '80-120', description: 'Cài đặt cao' },
+        ultra: { fps: '70-100', description: 'Cài đặt tối đa' },
+        notes: 'Game chạy tốt với hầu hết cấu hình.'
+    },
+    'elden-ring': {
+        low: { fps: '50-70', description: 'Cài đặt thấp' },
+        medium: { fps: '45-60', description: 'Cài đặt trung bình' },
+        high: { fps: '40-55', description: 'Cài đặt cao' },
+        ultra: { fps: '30-45', description: 'Cài đặt tối đa' },
+        notes: 'Game đòi hỏi cấu hình mạnh.'
+    },
+    'cyberpunk': {
+        low: { fps: '45-60', description: 'Cài đặt thấp' },
+        medium: { fps: '35-50', description: 'Cài đặt trung bình' },
+        high: { fps: '25-40', description: 'Cài đặt cao' },
+        ultra: { fps: '20-30', description: 'Cài đặt tối đa' },
+        notes: 'Game rất nặng, cần GPU mạnh và VRAM cao.'
+    }
+};
+
+// Define GAME_TYPES object
+window.GAME_TYPES = {
+    'lol': { type: 'esports', cpuDependency: 'medium' },
+    'valorant': { type: 'esports', cpuDependency: 'high' },
+    'csgo': { type: 'esports', cpuDependency: 'high' },
+    'pubg': { type: 'battle-royale', cpuDependency: 'high' },
+    'fortnite': { type: 'battle-royale', cpuDependency: 'medium' },
+    'cyberpunk': { type: 'aaa', cpuDependency: 'high' },
+    'gta-v': { type: 'aaa', cpuDependency: 'high' },
+    'apex': { type: 'battle-royale', cpuDependency: 'high' },
+    'dota2': { type: 'esports', cpuDependency: 'medium' },
+    'elden-ring': { type: 'aaa', cpuDependency: 'high' }
+};
+
+const components = {
+    cpu: cpuData,
+    mainboard: mainboardData,
+    vga: vgaData,
+    ram: ramData,
+    ssd: ssdData,
+    psu: psuData,
+    case: caseData,
+    cpuCooler: cpuCoolerData,
+    hdd: hddData,
+    monitor: monitorData
+};
+
+// Khai báo biến toàn cục
+let isAutoSelecting = false;
+
+// Add event listener for the game-genre dropdown as soon as the DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const gameGenreDropdown = document.getElementById('game-genre');
+    if (gameGenreDropdown) {
+        gameGenreDropdown.addEventListener('change', function() {
+            console.log("🎮 Game genre changed to:", this.value);
+            console.log("Calling autoSelectConfig after game change");
+            // Call the debug function first
+            debugSelections();
+            // Then try to auto-select with proper parameters
+            const gameId = document.getElementById("game-genre").value;
+            const budget = parseInt(document.getElementById("budget-range").value);
+            const cpuType = document.getElementById("cpu-type").value;
+            autoSelectConfig(gameId, budget, cpuType);
+        });
+        console.log("✅ Successfully attached event listener to game-genre dropdown");
+    } else {
+        console.error("❌ Could not find game-genre dropdown on page load");
+    }
+    
+    // Debug function to check all necessary selections
+    window.debugSelections = function() {
+        console.log("--------- DEBUG SELECTIONS ---------");
+        const gameDropdown = document.getElementById('game-genre');
+        const budgetRange = document.getElementById('budget-range');
+        const cpuTypeDropdown = document.getElementById('cpu-type');
+        
+        console.log("Elements found:");
+        console.log("- Game dropdown:", gameDropdown ? "✅" : "❌");
+        console.log("- Budget range:", budgetRange ? "✅" : "❌");
+        console.log("- CPU type dropdown:", cpuTypeDropdown ? "✅" : "❌");
+        
+        if (gameDropdown && budgetRange && cpuTypeDropdown) {
+            console.log("Current values:");
+            console.log("- Game:", gameDropdown.value || "not selected");
+            console.log("- Budget:", budgetRange.value ? `${parseInt(budgetRange.value)/1000000}M` : "not set");
+            console.log("- CPU type:", cpuTypeDropdown.value || "not selected");
+            
+            // Check if all values are valid for auto-selection
+            const gameValid = gameDropdown.value && gameDropdown.value.trim() !== "";
+            const budgetValid = budgetRange.value && !isNaN(parseInt(budgetRange.value));
+            const cpuTypeValid = cpuTypeDropdown.value && cpuTypeDropdown.value.trim() !== "";
+            
+            console.log("Values valid for auto-selection:");
+            console.log("- Game:", gameValid ? "✅" : "❌");
+            console.log("- Budget:", budgetValid ? "✅" : "❌");
+            console.log("- CPU type:", cpuTypeValid ? "✅" : "❌");
+            
+            if (gameValid && budgetValid && cpuTypeValid) {
+                console.log("✅ All values are valid for auto-selection");
+                
+                // Check if configuration exists
+                const cpuType = cpuTypeDropdown.value.trim();
+                const game = gameDropdown.value.trim();
+                const budgetInMillions = parseInt(budgetRange.value) / 1000000;
+                
+                // Check in configs
+                let configExists = false;
+                if (cpuType === 'Intel' && intelConfigs[game]) {
+                    const budgetKey = `${budgetInMillions}M`;
+                    if (intelConfigs[game][budgetKey]) {
+                        configExists = true;
+                        console.log(`✅ Configuration found for Intel, ${game}, ${budgetKey}`);
+                    } else {
+                        console.log(`❌ No configuration found for Intel, ${game}, ${budgetKey}`);
+                        console.log("Available budgets:", Object.keys(intelConfigs[game]));
+                    }
+                } else if (cpuType === 'Amd' && amdConfigs[game]) {
+                    const budgetKey = `${budgetInMillions}M`;
+                    if (amdConfigs[game][budgetKey]) {
+                        configExists = true;
+                        console.log(`✅ Configuration found for AMD, ${game}, ${budgetKey}`);
+                    } else {
+                        console.log(`❌ No configuration found for AMD, ${game}, ${budgetKey}`);
+                        console.log("Available budgets:", Object.keys(amdConfigs[game]));
+                    }
+                } else {
+                    console.log(`❌ No configurations found for ${cpuType}, ${game}`);
+                    if (cpuType === 'Intel') {
+                        console.log("Available Intel games:", Object.keys(intelConfigs));
+                    } else if (cpuType === 'Amd') {
+                        console.log("Available AMD games:", Object.keys(amdConfigs));
+                    }
+                }
+            } else {
+                console.log("❌ Some values are not valid for auto-selection");
+            }
+        }
+        console.log("-------- END DEBUG --------");
+    };
+});
+
+// Fallback function for images that fail to load
+function handleImageError(img) {
+    // Set a default color based on component type
+    const componentType = img.dataset.componentType || 'default';
+    const bgColors = {
+        cpu: '#3498db',
+        mainboard: '#2ecc71',
+        vga: '#e74c3c',
+        ram: '#f39c12',
+        ssd: '#9b59b6',
+        hdd: '#34495e',
+        case: '#1abc9c',
+        psu: '#d35400',
+        cpuCooler: '#7f8c8d',
+        monitor: '#2c3e50',
+        default: '#95a5a6'
+    };
+    
+    // Create a canvas to use as the img src
+    const canvas = document.createElement('canvas');
+    canvas.width = 200;
+    canvas.height = 150;
+    const ctx = canvas.getContext('2d');
+    
+    // Fill background
+    ctx.fillStyle = bgColors[componentType];
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Add text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(img.alt || componentType, canvas.width/2, canvas.height/2);
+    
+    // Replace the img src with the canvas data
+    img.src = canvas.toDataURL('image/png');
+    
+    // Prevent further error handling
+    img.onerror = null;
+}
+
+// Giả sử các dữ liệu components đã được định nghĩa đầy đủ
+
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById("budget-range").addEventListener("input", function () {
+        let value = parseInt(this.value);
+        let formattedValue = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+        document.getElementById("budget-value").innerText = formattedValue.replace("₫", "") + " triệu";
+    });
+    // Khai báo các phần tử DOM
+    const componentSelects = {
+        cpu: document.getElementById('cpu'),
+        mainboard: document.getElementById('mainboard'),
+        vga: document.getElementById('vga'),
+        ram: document.getElementById('ram'),
+        ssd: document.getElementById('ssd'),
+        psu: document.getElementById('psu'),
+        case: document.getElementById('case'),
+        cpuCooler: document.getElementById('cpuCooler'),
+        hdd: document.getElementById('hdd'),     // <-- Đảm bảo có dòng này
+        monitor: document.getElementById('monitor')    // <-- Đảm bảo có dòng này
+    };
+    Object.entries(componentSelects).forEach(([name, element]) => {
+        if (!element) {
+            console.error(`Không tìm thấy phần tử #${name}`);
+        }
+    });
+    populateDropdowns('cpu', 'cpu', cpuData);
+    populateDropdowns('mainboard', 'mainboard', mainboardData);
+    populateDropdowns('vga', 'vga', vgaData);
+    populateDropdowns('ram', 'ram', ramData);
+    populateDropdowns('ssd', 'ssd', ssdData);
+    populateDropdowns('psu', 'psu', psuData);
+    populateDropdowns('case', 'case', caseData);
+    populateDropdowns('cpuCooler', 'cpuCooler', cpuCoolerData);
+    populateDropdowns('hdd', 'hdd', hddData);     // <-- Đảm bảo có dòng này
+    populateDropdowns('monitor', 'monitor', monitorData); // <-- Đảm bảo có dòng này
+
+    // Các phần tử hiển thị
+    const totalPriceDisplay = document.getElementById('total-price');
+    const selectedComponentsList = document.getElementById('selected-components-list');
+    const summaryModal = document.getElementById('summary-modal');
+    const modalSummaryContent = document.getElementById('modal-components-list'); // SỬA ĐỔI ID CHO ĐÚNG
+    const modalTotalPriceDisplay = document.getElementById('modal-total-price');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const calculateButton = document.getElementById('calculate-button');
+
+
+    // Thêm CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        .component-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .component-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .component-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .component-card:hover::before {
+            left: 100%;
+        }
+
+        .component-image {
+            max-width: 100px;
+            margin-right: 20px;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .component-card:hover .component-image {
+            transform: scale(1.1);
+        }
+
+        #total-price {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            animation: priceGlow 2s infinite alternate;
+        }
+
+        @keyframes priceGlow {
+            from {
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            to {
+                box-shadow: 0 2px 20px rgba(0,128,255,0.2);
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: modalFade 0.3s ease;
+        }
+
+        @keyframes modalFade {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            margin: 50px auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            animation: modalSlide 0.3s ease;
+        }
+
+        @keyframes modalSlide {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .component-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            animation: tableAppear 0.5s ease;
+        }
+
+        @keyframes tableAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .component-table th {
+            background: linear-gradient(135deg, #f4f4f4 0%, #e8e8e8 100%);
+            font-weight: bold;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+            transition: background-color 0.3s ease;
+        }
+
+        .component-table th:hover {
+            background: linear-gradient(135deg, #e8e8e8 0%, #f4f4f4 100%);
+        }
+
+        .component-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            transition: background-color 0.3s ease;
+        }
+
+        .component-table tr:hover td {
+            background-color: #f8f9fa;
+        }
+
+        .component-table img {
+            max-width: 70px;
+            height: auto;
+            display: block;
+            margin: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .component-table img:hover {
+            transform: scale(1.2);
+        }
+
+        .score-message, .upgrade-message {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            animation: messageSlide 0.5s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .score-message {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(40,167,69,0.2);
+        }
+
+        .upgrade-message {
+            background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(253,126,20,0.2);
+        }
+
+        .graphics-quality-container {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            animation: qualityAppear 0.5s ease;
+        }
+
+        @keyframes qualityAppear {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .fps-estimate-container {
+            background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            animation: fpsGlow 2s infinite alternate;
+        }
+
+        @keyframes fpsGlow {
+            from {
+                box-shadow: 0 2px 10px rgba(0,123,255,0.2);
+            }
+            to {
+                box-shadow: 0 2px 20px rgba(102,16,242,0.4);
+            }
+        }
+
+        #game-specific-performance {
+            padding: 15px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            margin: 15px 0;
+            animation: performanceSlide 0.5s ease;
+        }
+
+        @keyframes performanceSlide {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    function updateSelectedComponents() {
+        updateScores()
+        selectedComponentsList.innerHTML = '';
+        let total = 0;
+        const selectedComponentsDetails = []; // Khởi tạo mảng để chứa thông tin chi tiết linh kiện
+
+        // Tính toán tổng giá và tạo card
+        for (const [type, select] of Object.entries(componentSelects)) {
+            const value = select.value;
+            if (value && components[type]?.[value]) {
+                const component = components[type][value];
+                total += component.price;
+
+                const card = document.createElement('div');
+                card.className = 'component-card';
+
+                // Create image HTML with error handling
+                const imageHtml = component.image 
+                    ? `<img src="${component.image}" class="component-image" alt="${component.name}" data-component-type="${type}" onerror="handleImageError(this)">`
+                    : `<div class="component-image-placeholder" style="background-color: #f0f0f0; height: 150px; display: flex; align-items: center; justify-content: center;">${component.name}</div>`;
+
+                card.innerHTML = `
+                    ${imageHtml}
+                    <h3>${component.name} - ${component.price.toLocaleString()} VNĐ</h3>
+                    <div class="component-info" style="display: none;">
+                        ${component.socket ? `<p>Socket: ${component.socket}</p>` : ''}
+                        ${component.memoryType ? `<p>Loại RAM: ${component.memoryType}</p>` : ''}
+                        ${component.cores ? `<p>Cores: ${component.cores}</p>` : ''}
+                        ${component.threads ? `<p>Threads: ${component.threads}</p>` : ''}
+                        ${component.technology ? `<p>Technology: ${component.technology}</p>` : ''}
+                        ${component.ram_support ? `<p>RAM Support: ${component.ram_support}</p>` : ''}
+                        ${component.ram_bus ? `<p>RAM Bus: ${component.ram_bus}</p>` : ''}
+                        ${component.vram ? `<p>VRAM: ${component.vram}</p>` : ''}
+                        ${component.vram_type ? `<p>VRAM Type: ${component.vram_type}</p>` : ''}
+                        ${component.card_type ? `<p>Card Type: ${component.card_type}</p>` : ''}
+                        ${component.type ? `<p>Type: ${component.type}</p>` : ''}
+                        ${component.speed ? `<p>Speed: ${component.speed}</p>` : ''}
+                        ${component.size ? `<p>Size: ${component.size}</p>` : ''}
+                        ${component.nvmeSlots ? `<p>NVMe Slots: ${component.nvmeSlots}</p>` : ''}
+                        ${component.pcieVersion ? `<p>PCIe Version: ${component.pcieVersion}</p>` : ''}
+                        ${component.formFactor ? `<p>Form Factor: ${component.formFactor}</p>` : ''} <!-- Đã thêm dòng này -->
+                        ${component.panelType ? `<p>Panel Type: ${component.panelType}</p>` : ''}
+                        ${component.refreshRate ? `<p>Refresh Rate: ${component.refreshRate}</p>` : ''}
+                        ${component.screenSize ? `<p>Screen Size: ${component.screenSize}</p>` : ''}
+        
+                        ${component.sockets ? `<p>Sockets hỗ trợ: ${component.sockets.join(', ')}</p>` : ''}
+                        ${component.sync ? `<p>Đồng bộ LED: ${component.sync}</p>` : ''}
+        
+                        ${component.supportedMainboards ? `<p>Mainboard hỗ trợ: ${component.supportedMainboards.join(', ')}</p>` : ''}
+                        ${component.dimensions ? `<p>Kích thước Case: ${component.dimensions}</p>` : ''}
+        
+                        ${component.connectors ? `<div class="connectors">
+                            <p>Connectors:</p>
+                            <ul>
+                                ${component.connectors.mainboard ? `<li>Mainboard: ${component.connectors.mainboard}</li>` : ''}
+                                ${component.connectors.cpu ? `<li>CPU: ${Array.isArray(component.connectors.cpu) ? component.connectors.cpu.join(', ') : component.connectors.cpu}</li>` : ''}
+                                ${component.connectors.pcie ? `<li>PCIe: ${Array.isArray(component.connectors.pcie) ? component.connectors.pcie.join(', ') : component.connectors.pcie}</li>` : ''}
+                                ${component.connectors.sata ? `<li>SATA: ${component.connectors.sata}</li>` : ''}
+                                ${component.connectors.molex ? `<li>Molex: ${component.connectors.molex}</li>` : ''}
+                            </ul>
+                        </div>` : ''}
+        
+                        ${component.power ? `<p>Power: ${component.power}</p>` : ''}
+                    </div>
+                `;
+
+                // Thêm sự kiện click để hiển thị thông tin chi tiết
+                card.addEventListener("click", function () {
+                    const info = card.querySelector(".component-info");
+                    info.style.display = info.style.display === "none" ? "block" : "none";
+                });
+
+                selectedComponentsList.appendChild(card);
+                selectedComponentsDetails.push(component);
+            }
+        }
+
+
+        // Cập nhật tổng giá - FIX CHÍNH
+        const priceElement = totalPriceDisplay.querySelector('p');
+        if (priceElement) {
+            priceElement.textContent = `${total.toLocaleString()} VNĐ`;
+        } else {
+            console.error('Không tìm thấy phần tử hiển thị giá');
+        }
+
+        return { total, selectedComponentsDetails }; // Trả về object chứa cả tổng tiền và danh sách chi tiết
+    }
+
+    function calculateTotalPriceAndSummary() {
+        if (!modalSummaryContent || !modalTotalPriceDisplay || !imagePreviewContainer) {
+            console.error("Missing modal elements");
+            return;
+        }
+
+        const calculationResult = updateSelectedComponents(); // Get the return value
+        const total = calculationResult.total;         // Extract total
+        const selectedComponentsDetails = calculationResult.selectedComponentsDetails; // Extract selectedComponentsDetails
+
+        modalSummaryContent.innerHTML = ''; // Xóa nội dung cũ của modal
+        imagePreviewContainer.innerHTML = ''; // Xóa ảnh cũ nếu có
+
+        // Ẩn phần hiển thị text tổng tiền trong modal (chỉ hiển thị bảng)
+        modalTotalPriceDisplay.style.display = 'none';
+
+        // Tạo bảng HTML để hiển thị thông tin chi tiết
+        const table = document.createElement('table');
+        table.className = 'component-table'; // Thêm class để CSS (tùy chọn)
+
+        // Tạo hàng tiêu đề bảng
+        const headerRow = table.insertRow();
+        const headers = ['Loại', 'Hình ảnh', 'Tên Linh Kiện', 'Giá Tiền', 'Bảo hành', 'Tình trạng']; // Thêm "Loại"
+        headers.forEach(headerText => {
+            const headerCell = document.createElement('th');
+            headerCell.textContent = headerText;
+            headerRow.appendChild(headerCell);
+        });
+
+        // Thêm dữ liệu linh kiện vào bảng
+        selectedComponentsDetails.forEach(component => {
+            const dataRow = table.insertRow();
+
+            // Ô Hình ảnh
+
+
+            // Ô Loại linh kiện (type) - Lấy từ key của componentSelects
+            const typeCell = dataRow.insertCell();
+            let componentType = '';
+            for (const [type, select] of Object.entries(componentSelects)) {
+                if (select.value === Object.keys(components[type]).find(key => components[type][key] === component)) {
+                    componentType = type.toUpperCase(); // In hoa loại linh kiện
+                    break;
+                }
+            }
+            typeCell.textContent = componentType;
+
+            const imageCell = dataRow.insertCell();
+            if (component.image) {
+                const img = document.createElement('img');
+                img.src = component.image;
+                img.alt = component.name;
+                img.style.maxWidth = '70px'; // Điều chỉnh kích thước ảnh trong bảng
+                imageCell.appendChild(img);
+            }
+
+
+            // Ô Tên linh kiện
+            const nameCell = dataRow.insertCell();
+            nameCell.textContent = component.name;
+
+            // Ô Giá
+            const priceCell = dataRow.insertCell();
+            priceCell.textContent = `${component.price.toLocaleString()} VNĐ`;
+
+            // Ô Bảo hành
+            const warrantyCell = dataRow.insertCell();
+            warrantyCell.textContent = component.warranty || 'Không có';
+
+            // Ô Tình trạng
+            const conditionCell = dataRow.insertCell();
+            conditionCell.textContent = component.condition || 'Không rõ';
+        });
+
+        modalSummaryContent.appendChild(table); // Thêm bảng vào modal
+        summaryModal.style.display = 'block'; // Hiển thị modal
+        modalTotalPriceDisplay.style.display = 'block'; // Đảm bảo phần tử hiển thị
+        modalTotalPriceDisplay.textContent = `Tổng cộng: ${total.toLocaleString()} VNĐ`; // Cập nhật giá tiền
+    }
+
+    function updateScores() {
+        console.log("Hàm updateScores() được gọi!");
+
+        const cpuDropdown = document.getElementById('cpu');
+        const mainboardDropdown = document.getElementById('mainboard');
+        const vgaDropdown = document.getElementById('vga');
+        const ssdDropdown = document.getElementById('ssd');
+        const psuDropdown = document.getElementById('psu');
+        const caseDropdown = document.getElementById('case');
+        const cpuCoolerDropdown = document.getElementById('cpuCooler');
+        const ramDropdown = document.getElementById('ram');
+
+        // Kiểm tra dropdown elements tồn tại
+        if (!cpuDropdown || !mainboardDropdown || !vgaDropdown || !ssdDropdown || !psuDropdown || !caseDropdown || !cpuCoolerDropdown || !ramDropdown) {
+            console.error("❌ Không tìm thấy một hoặc nhiều dropdown elements! Kiểm tra lại ID HTML.");
+            return;
+        }
+        const socketMessageElement = document.getElementById("socket-message");
+        const scoreMessageElement = document.getElementById("score-message");
+        const upgradeMessageElement = document.getElementById("upgrade-message");
+
+        const selectedCpuKey = cpuDropdown.value;
+        if (!selectedCpuKey) {
+            console.error("❌ Không có CPU nào được chọn!");
+            return;
+        }
+        const selectedCpu = cpuData[selectedCpuKey];
+
+        // Khai báo biến selectedMainboardKey trước khi sử dụng
+        const selectedMainboardKey = mainboardDropdown.value;
+
+        // Cập nhật danh sách Mainboard theo Socket của CPU
+        const mainboardOptions = mainboardDropdown.options;
+        let mainboardCompatible = false;
+        for (let i = 0; i < mainboardOptions.length; i++) {
+            const mainboardOption = mainboardOptions[i];
+            const mainboardKey = mainboardOption.value;
+            const mainboard = mainboardData[mainboardKey];
+
+            if (mainboard && mainboard.sockets.includes(selectedCpu.socket)) {
+                mainboardOption.style.display = "block";
+                mainboardOption.disabled = false;
+                mainboardCompatible = true;
+            } else {
+                mainboardOption.style.display = "none";
+                mainboardOption.disabled = true;
+            }
+        }
+        if (!mainboardCompatible) {
+            mainboardDropdown.value = "";
+        }
+
+        // Cập nhật danh sách RAM theo RAM hỗ trợ của CPU và loại RAM của Mainboard
+        const ramOptions = ramDropdown.options;
+        let ramCompatible = false;
+        const selectedMainboard = mainboardData[selectedMainboardKey];
+
+        for (let i = 0; i < ramOptions.length; i++) {
+            const ramOption = ramOptions[i];
+            const ramKey = ramOption.value;
+            const ram = ramData[ramKey];
+
+            if (
+                ram &&
+                selectedCpu.ram_support.includes(ram.type) &&
+                selectedMainboard && selectedMainboard.memoryType === ram.type
+            ) {
+                ramOption.style.display = "block";
+                ramOption.disabled = false;
+                ramCompatible = true;
+            } else {
+                ramOption.style.display = "none";
+                ramOption.disabled = true;
+            }
+        }
+        if (!ramCompatible) {
+            ramDropdown.value = "";
+        }
+
+        const selectedVgaKey = vgaDropdown.value;
+        const selectedSsdKey = ssdDropdown.value;
+        const selectedPsuKey = psuDropdown.value;
+        const selectedCaseKey = caseDropdown.value;
+        const selectedCpuCoolerKey = cpuCoolerDropdown.value;
+        const selectedRamKey = ramDropdown.value; // Get selected RAM key
+
+
+        const cpuName = selectedCpuKey && cpuData[selectedCpuKey] ? cpuData[selectedCpuKey].name : "...";
+        const cpuScore = selectedCpuKey && cpuData[selectedCpuKey] ? Number(cpuData[selectedCpuKey].score) : "...";
+
+        const mainboardName = selectedMainboardKey && mainboardData[selectedMainboardKey] ? mainboardData[selectedMainboardKey].name : "...";
+        const mainboardScore = selectedMainboardKey && mainboardData[selectedMainboardKey] ? Number(mainboardData[selectedMainboardKey].score) : "...";
+
+        const vgaName = selectedVgaKey && vgaData[selectedVgaKey] ? vgaData[selectedVgaKey].name : "...";
+        const vgaScore = selectedVgaKey && vgaData[selectedVgaKey] ? Number(vgaData[selectedVgaKey].score) : "...";
+
+        const ssdName = selectedSsdKey && ssdData[selectedSsdKey] ? ssdData[selectedSsdKey].name : "...";
+        const ssdScore = selectedSsdKey && ssdData[selectedSsdKey] ? Number(ssdData[selectedSsdKey].score) : "...";
+
+        const psuName = selectedPsuKey && psuData[selectedPsuKey] ? psuData[selectedPsuKey].name : "...";
+        const psuScore = selectedPsuKey && psuData[selectedPsuKey] ? Number(psuData[selectedPsuKey].score) : "...";
+
+        const caseName = selectedCaseKey && caseData[selectedCaseKey] ? caseData[selectedCaseKey].name : "...";
+        const caseScore = selectedCaseKey && caseData[selectedCaseKey] ? Number(caseData[selectedCaseKey].score) : "...";
+
+        const cpuCoolerName = selectedCpuCoolerKey && cpuCoolerData[selectedCpuCoolerKey] ? cpuCoolerData[selectedCpuCoolerKey].name : "...";
+        const cpuCoolerScore = selectedCpuCoolerKey && cpuCoolerData[selectedCpuCoolerKey] ? Number(cpuCoolerData[selectedCpuCoolerKey].score) : "...";
+
+        const ramName = selectedRamKey && ramData[selectedRamKey] ? ramData[selectedRamKey].name : "..."; // Get RAM name
+        const ramScore = selectedRamKey && ramData[selectedRamKey] ? Number(ramData[selectedRamKey].score) : "..."; // Get RAM score
+
+
+        document.getElementById("cpu-name").textContent = cpuName;
+        document.getElementById("cpu-score").textContent = cpuScore;
+
+        document.getElementById("mainboard-name").textContent = mainboardName;
+        document.getElementById("mainboard-score").textContent = mainboardScore;
+
+        document.getElementById("vga-name").textContent = vgaName;
+        document.getElementById("vga-score").textContent = vgaScore;
+
+        document.getElementById("ssd-name").textContent = ssdName;
+        document.getElementById("ssd-score").textContent = ssdScore;
+
+        document.getElementById("ram-name").textContent = ramName; // Display RAM name
+        document.getElementById("ram-score").textContent = ramScore; // Display RAM score
+
+        document.getElementById("cpu-cooler-name").textContent = cpuCoolerName;
+        document.getElementById("cpu-cooler-score").textContent = cpuCoolerScore;
+
+        document.getElementById("psu-name").textContent = psuName;
+        document.getElementById("psu-score").textContent = psuScore;
+
+        document.getElementById("case-name").textContent = caseName;
+        document.getElementById("case-score").textContent = caseScore;
+
+
+        let totalScore = "...";
+        let scoreSum = 0; // Tổng điểm
+
+        if (!isNaN(Number(cpuScore))) { scoreSum += Number(cpuScore); }
+        if (!isNaN(Number(mainboardScore))) { scoreSum += Number(mainboardScore); }
+        if (!isNaN(Number(vgaScore))) { scoreSum += Number(vgaScore); }
+        if (!isNaN(Number(ssdScore))) { scoreSum += Number(ssdScore); }
+        if (!isNaN(Number(psuScore))) { scoreSum += Number(psuScore); }
+        if (!isNaN(Number(caseScore))) { scoreSum += Number(caseScore); }
+        if (!isNaN(Number(cpuCoolerScore))) { scoreSum += Number(cpuCoolerScore); }
+        if (!isNaN(Number(ramScore))) { scoreSum += Number(ramScore); } // Add RAM score to total
+
+
+        totalScore = (scoreSum / 8).toFixed(2); // Tính tổng điểm trung bình của tất cả 8 linh kiện và làm tròn đến 2 chữ số thập phân // Changed divisor to 8
+
+
+        document.getElementById("total-score").textContent = totalScore;
+        console.log("totalScore:", totalScore); // Console log 1 lần thôi
+        const cpuScoreValue = Number(cpuScore);
+        const mainboardScoreValue = Number(mainboardScore);
+
+
+        let recommendationMessage = ""; // Biến lưu thông báo khuyến nghị dựa trên điểm tổng (CHO KHU VỰC #score-message)
+        let upgradeRecommendationMessage = ""; // Biến lưu thông báo KHUYẾN NGHỊ NÂNG CẤP (CHO KHU VỰC #upgrade-message)
+
+
+        if (totalScore <= 2.5) {
+            recommendationMessage = "MÁY HƠI YẾU, CHƠI GAME ONLINE NÊN NÂNG CPU VÀ MAIN";
+        } else if (totalScore <= 4) {
+            recommendationMessage = "MÁY CŨNG KHÁ ỔN RỒI MUỐN TĂNG FPS MÀ CHƠI SETTING THẤP HÃY TĂNG CPU";
+        } else if (totalScore <= 6) {
+            recommendationMessage = "MÁY TẠM ỔN RỒI, TĂNG FPS SETTING THẤP NÂNG CPU CÒN TĂNG FPS 3A THÌ NÂNG VGA";
+        } else if (totalScore <= 8) {
+            recommendationMessage = "MÁY NHƯ NÀY CÒN GÌ MÀ CHÊ NỮA";
+        } else if (totalScore <= 10) {
+            recommendationMessage = "BẠN MUỐN MUA CẢ SỐP KHÔNG?";
+        }
+
+
+        // THÊM ĐOẠN CODE MỚI ĐỂ KHUYẾN NGHỊ NÂNG CẤP CPU/MAINBOARD (CHO KHU VỰC #upgrade-message)
+        if (!isNaN(cpuScoreValue) && !isNaN(mainboardScoreValue)) { // Đảm bảo cả hai giá trị đều là số
+            const scoreDiff = cpuScoreValue - mainboardScoreValue; // Tính độ chênh lệch điểm (CPU - Mainboard)
+
+            if (scoreDiff >= 3) { // CPU mạnh hơn Mainboard từ 2 điểm trở lên
+                upgradeRecommendationMessage = "Nên nâng cấp Mainboard";
+            } else if (scoreDiff <= -3) { // Mainboard mạnh hơn CPU từ 2 điểm trở lên (scoreDiff <= -2 tương đương MainboardScore - CPUScore >= 2)
+                upgradeRecommendationMessage = "Nên nâng cấp CPU";
+            }
+        }
+
+
+        // HIỂN THỊ THÔNG BÁO Ở CÁC KHU VỰC RIÊNG BIỆT
+        if (scoreMessageElement && recommendationMessage) { // Hiển thị thông báo ĐIỂM TỔNG ở khu vực #score-message
+            scoreMessageElement.textContent = recommendationMessage;
+            scoreMessageElement.classList.add('score-message'); // Thêm class score-message cho #score-message
+        }
+
+        if (upgradeMessageElement && upgradeRecommendationMessage) { // Hiển thị thông báo NÂNG CẤP ở khu vực #upgrade-message
+            upgradeMessageElement.textContent = upgradeRecommendationMessage;
+            upgradeMessageElement.classList.add('upgrade-message'); // Thêm class upgrade-message cho #upgrade-message
+        }
+    }
+    // Gọi hàm updateScores() lần đầu để hiển thị giá trị mặc định hoặc khi trang tải xong
+    setTimeout(updateScores, 0);
+
+    // Hàm tự động chọn cấu hình dựa trên game, ngân sách và loại CPU
+    function autoSelectConfig(gameId, budget, cpuType) {
+        console.log(`Attempting autoSelectConfig with: gameId=${gameId}, budget=${budget}, cpuType=${cpuType}`);
+        
+        if (!gameId || !budget || !cpuType) {
+            console.warn('Missing required parameters for autoSelectConfig');
+            return null;
+        }
+
+        // Đảm bảo cấu hình mặc định đã được tải
+        try {
+            if (typeof window.intelConfigs === 'undefined') {
+                // Tạo cấu hình mặc định cho Intel
+                window.intelConfigs = {
+                    'valorant': {
+                        '8M': { cpu: '10400f', mainboard: 'H510', vga: '1660s', ram: 'furry-16', ssd: 'sstc-256', case: 'GA', cpuCooler: 'STOCK', psu: 'DT660' },
+                        '16M': { cpu: '12400f', mainboard: 'ASUS-B760', vga: '3070', ram: 'cosair-16', ssd: 'crucial-500', case: 'GA3', cpuCooler: 'CR1000', psu: 'VSP750' }
+                    },
+                    'csgo': {
+                        '8M': { cpu: '10400f', mainboard: 'H510', vga: '1660s', ram: 'furry-16', ssd: 'sstc-256', case: 'GA', cpuCooler: 'STOCK', psu: 'DT660' },
+                        '16M': { cpu: '12400f', mainboard: 'ASUS-B760', vga: '3070', ram: 'cosair-16', ssd: 'crucial-500', case: 'GA3', cpuCooler: 'CR1000', psu: 'VSP750' }
+                    },
+                    'pubg': {
+                        '8M': { cpu: '10400f', mainboard: 'H510', vga: '3060', ram: 'furry-16', ssd: 'sstc-256', case: 'GA', cpuCooler: 'STOCK', psu: 'DT660' },
+                        '16M': { cpu: '12600kf', mainboard: 'ASUS-B760', vga: '3070', ram: 'cosair-16', ssd: 'crucial-500', case: 'GA3', cpuCooler: 'CR1000', psu: 'VSP750' }
+                    },
+                    'lol': {
+                        '8M': { cpu: '10400f', mainboard: 'H510', vga: '1660s', ram: 'furry-16', ssd: 'sstc-256', case: 'GA', cpuCooler: 'STOCK', psu: 'DT660' },
+                        '16M': { cpu: '12400f', mainboard: 'ASUS-B760', vga: '3070', ram: 'cosair-16', ssd: 'crucial-500', case: 'GA3', cpuCooler: 'CR1000', psu: 'VSP750' }
+                    }
+                };
+                
+                // Thêm các trò chơi còn lại cùng cấu hình cơ bản
+                const otherGames = ['gta-v', 'elden-ring', 'naraka', 'genshin', 'fo4', 'black-myth-wukong', 'god-of-war', 'battle-teams-2', 'delta-force', 'audition', 'mu-origin', 'crossfire'];
+                otherGames.forEach(game => {
+                    window.intelConfigs[game] = {
+                        '8M': { cpu: '10400f', mainboard: 'H510', vga: '1660s', ram: 'furry-16', ssd: 'sstc-256', case: 'GA', cpuCooler: 'STOCK', psu: 'DT660' },
+                        '16M': { cpu: '12400f', mainboard: 'ASUS-B760', vga: '3070', ram: 'cosair-16', ssd: 'crucial-500', case: 'GA3', cpuCooler: 'CR1000', psu: 'VSP750' }
+                    };
+                });
+                
+                console.log('Created default Intel configurations');
+            }
+            
+            if (typeof window.amdConfigs === 'undefined') {
+                // Tạo cấu hình mặc định cho AMD
+                window.amdConfigs = {
+                    'valorant': {
+                        '8M': { cpu: '5600x', mainboard: 'GIGA-B450', vga: '1660s', ram: 'furry-16', ssd: 'sstc-256', case: 'GA', cpuCooler: 'STOCK', psu: 'DT660' },
+                        '16M': { cpu: '5700x3d', mainboard: 'JGINYUE-B450', vga: '3070', ram: 'cosair-16', ssd: 'crucial-500', case: 'GA3', cpuCooler: 'CR1000', psu: 'VSP750' }
+                    },
+                    'csgo': {
+                        '8M': { cpu: '5600x', mainboard: 'GIGA-B450', vga: '1660s', ram: 'furry-16', ssd: 'sstc-256', case: 'GA', cpuCooler: 'STOCK', psu: 'DT660' },
+                        '16M': { cpu: '5700x3d', mainboard: 'JGINYUE-B450', vga: '3070', ram: 'cosair-16', ssd: 'crucial-500', case: 'GA3', cpuCooler: 'CR1000', psu: 'VSP750' }
+                    },
+                    'pubg': {
+                        '8M': { cpu: '5600x', mainboard: 'GIGA-B450', vga: '3060', ram: 'furry-16', ssd: 'sstc-256', case: 'GA', cpuCooler: 'STOCK', psu: 'DT660' },
+                        '16M': { cpu: '5700x3d', mainboard: 'JGINYUE-B450', vga: '3070', ram: 'cosair-16', ssd: 'crucial-500', case: 'GA3', cpuCooler: 'CR1000', psu: 'VSP750' }
+                    },
+                    'lol': {
+                        '8M': { cpu: '5600x', mainboard: 'GIGA-B450', vga: '1660s', ram: 'furry-16', ssd: 'sstc-256', case: 'GA', cpuCooler: 'STOCK', psu: 'DT660' },
+                        '16M': { cpu: '5700x3d', mainboard: 'JGINYUE-B450', vga: '3070', ram: 'cosair-16', ssd: 'crucial-500', case: 'GA3', cpuCooler: 'CR1000', psu: 'VSP750' }
+                    }
+                };
+                
+                // Thêm các trò chơi còn lại cùng cấu hình cơ bản
+                const otherGames = ['gta-v', 'elden-ring', 'naraka', 'genshin', 'fo4', 'black-myth-wukong', 'god-of-war', 'battle-teams-2', 'delta-force', 'audition', 'mu-origin', 'crossfire'];
+                otherGames.forEach(game => {
+                    window.amdConfigs[game] = {
+                        '8M': { cpu: '5600x', mainboard: 'GIGA-B450', vga: '1660s', ram: 'furry-16', ssd: 'sstc-256', case: 'GA', cpuCooler: 'STOCK', psu: 'DT660' },
+                        '16M': { cpu: '5700x3d', mainboard: 'JGINYUE-B450', vga: '3070', ram: 'cosair-16', ssd: 'crucial-500', case: 'GA3', cpuCooler: 'CR1000', psu: 'VSP750' }
+                    };
+                });
+                
+                console.log('Created default AMD configurations');
+            }
+        } catch (error) {
+            console.error('Error initializing configurations:', error);
+        }
+        
+        // Lấy cấu hình phù hợp
+        const configs = cpuType.toLowerCase() === 'intel' ? window.intelConfigs : window.amdConfigs;
+        
+        if (!configs || !configs[gameId]) {
+            console.warn(`No configuration found for ${cpuType} ${gameId}`);
+            console.log('Available configs:', configs ? Object.keys(configs) : 'None');
+            return null;
+        }
+        
+        // Định dạng budget key
+        const budgetInMillions = Math.floor(budget / 1000000);
+        console.log(`Budget value in millions: ${budgetInMillions}M`);
+        
+        // Lấy các mức ngân sách có sẵn và tìm mức gần nhất
+        const availableBudgets = Object.keys(configs[gameId])
+            .map(budgetKey => parseInt(budgetKey.replace('M', '')));
+        
+        console.log(`Available budgets for ${gameId}:`, availableBudgets);
+        
+        // Tìm mức ngân sách gần nhất
+        let closestBudget = availableBudgets.reduce((prev, curr) => 
+            Math.abs(curr - budgetInMillions) < Math.abs(prev - budgetInMillions) ? curr : prev
+        );
+        
+        const closestBudgetKey = `${closestBudget}M`;
+        console.log(`Using closest available budget: ${closestBudgetKey} for requested budget: ${budgetInMillions}M`);
+        
+        const config = configs[gameId][closestBudgetKey];
+        console.log('⚙️ Config found:', config);
+        
+        // Cập nhật các dropdown theo cấu hình
+        if (config.cpu) updateDropdown('cpu', config.cpu);
+        if (config.mainboard) updateDropdown('mainboard', config.mainboard);
+        if (config.vga) updateDropdown('vga', config.vga);
+        if (config.ram) updateDropdown('ram', config.ram);
+        if (config.ssd) updateDropdown('ssd', config.ssd);
+        if (config.case) updateDropdown('case', config.case);
+        if (config.cpuCooler) updateDropdown('cpuCooler', config.cpuCooler);
+        if (config.psu) updateDropdown('psu', config.psu);
+        
+        // Cập nhật giá và tổng tiền sau khi tất cả các dropdown được cập nhật
+        setTimeout(function() {
+            try {
+                updateComponentPrices();
+                console.log('Price table updated after auto-selection');
+            } catch (error) {
+                console.error('Error updating prices after auto-selection:', error);
+            }
+        }, 500);
+        
+        // Cập nhật tổng tiền và tóm tắt
+        calculateTotalPriceAndSummary();
+        
+        return config;
+    }
+
+    // Export functions for use in other modules
+    if (typeof window !== 'undefined') {
+        window.getCPUGeneration = getCPUGeneration;
+        window.getGameType = getGameType;
+        window.autoSelectConfig = autoSelectConfig;
+        window.updateComponentPrices = updateComponentPrices;  // Xuất hàm updateComponentPrices
+    }
+
+    // Global score tracking
+    let currentCPUScore = 0;
+    let currentGPUScore = 0;
+
+    // Hàm lấy tên game từ ID
+    function getGameName(gameId) {
+        const gameNames = {
+            'valorant': 'Valorant',
+            'csgo': 'CS:GO',
+            'pubg': 'PUBG',
+            'lol': 'Liên Minh Huyền Thoại',
+            'gta-v': 'GTA V',
+            'elden-ring': 'Elden Ring',
+            'naraka': 'Naraka: Bladepoint',
+            'genshin': 'Genshin Impact',
+            'fo4': 'FIFA Online 4',
+            'black-myth-wukong': 'Black Myth: Wukong',
+            'god-of-war': 'God of War',
+            'battle-teams-2': 'Battle Teams 2',
+            'delta-force': 'Delta Force',
+            'audition': 'Audition',
+            'mu-origin': 'MU Origin',
+            'crossfire': 'CrossFire'
+        };
+        return gameNames[gameId] || gameId;
+    }
+
+    // Hàm lấy màu cho độ ổn định
+    function getStabilityColor(stability) {
+        if (stability >= 90) return "#28a745"; // Rất ổn định - Green
+        if (stability >= 70) return "#5cb85c";  // Ổn định - Light Green
+        if (stability >= 50) return "#f0ad4e";  // Tương đối ổn định - Yellow
+        return "#dc3545";                      // Không ổn định - Red
+    }
+
+    // Hàm cập nhật thông tin giá và thành tiền trong bảng linh kiện
+    function updateComponentPrices() {
+        // Đảm bảo biến allComponents tồn tại
+        if (typeof allComponents === 'undefined') {
+            window.allComponents = {
+                cpu: [],
+                mainboard: [],
+                ram: [],
+                vga: [],
+                ssd: [],
+                cpuCooler: [],
+                psu: [],
+                case: [],
+                hdd: [],
+                monitor: []
+            };
+        }
+
+        // Lấy dữ liệu từ các linh kiện đã chọn
+        const componentsData = {
+            cpu: { element: document.getElementById('cpu'), priceEl: document.getElementById('cpu-price'), totalEl: document.getElementById('cpu-total'), nameEl: document.getElementById('cpu-name') },
+            mainboard: { element: document.getElementById('mainboard'), priceEl: document.getElementById('mainboard-price'), totalEl: document.getElementById('mainboard-total'), nameEl: document.getElementById('mainboard-name') },
+            ram: { element: document.getElementById('ram'), priceEl: document.getElementById('ram-price'), totalEl: document.getElementById('ram-total'), nameEl: document.getElementById('ram-name') },
+            vga: { element: document.getElementById('vga'), priceEl: document.getElementById('vga-price'), totalEl: document.getElementById('vga-total'), nameEl: document.getElementById('vga-name') },
+            ssd: { element: document.getElementById('ssd'), priceEl: document.getElementById('ssd-price'), totalEl: document.getElementById('ssd-total'), nameEl: document.getElementById('ssd-name') },
+            cpuCooler: { element: document.getElementById('cpuCooler'), priceEl: document.getElementById('cpu-cooler-price'), totalEl: document.getElementById('cpu-cooler-total'), nameEl: document.getElementById('cpu-cooler-name') },
+            psu: { element: document.getElementById('psu'), priceEl: document.getElementById('psu-price'), totalEl: document.getElementById('psu-total'), nameEl: document.getElementById('psu-name') },
+            case: { element: document.getElementById('case'), priceEl: document.getElementById('case-price'), totalEl: document.getElementById('case-total'), nameEl: document.getElementById('case-name') },
+            additional: { priceEl: document.getElementById('additional-component-price'), totalEl: document.getElementById('additional-component-total'), nameEl: document.getElementById('additional-component-name') },
+            monitor: { element: document.getElementById('monitor'), priceEl: document.getElementById('monitor-price'), totalEl: document.getElementById('monitor-total'), nameEl: document.getElementById('monitor-name') }
+        };
+
+        // Linh kiện bổ sung có thể là HDD hoặc monitor
+        const hdd = document.getElementById('hdd');
+
+        // Cài đặt thông tin linh kiện thứ 9 (bổ sung HDD)
+        let additionalComponent = null;
+        if (hdd && hdd.value) {
+            const hddOption = hdd.options[hdd.selectedIndex];
+            if (hddOption) {
+                try {
+                    const component = getComponentFromOptions(window.allComponents, 'hdd', hdd.value);
+                    if (component) {
+                        additionalComponent = component;
+                    } else {
+                        // Nếu không tìm thấy trong allComponents, lấy từ tên option
+                        additionalComponent = { name: hddOption.text || 'HDD', price: parseInt(hddOption.dataset.price || '0', 10) };
+                    }
+                } catch (error) {
+                    console.error('Error getting HDD component:', error);
+                }
+            }
+        }
+
+        if (additionalComponent && componentsData.additional.nameEl) {
+            componentsData.additional.nameEl.textContent = additionalComponent.name;
+            componentsData.additional.priceEl.textContent = formatPrice(additionalComponent.price);
+            componentsData.additional.totalEl.textContent = formatPrice(additionalComponent.price);
+        } else {
+            // Nếu không có linh kiện bổ sung nào được chọn
+            if (componentsData.additional.nameEl) componentsData.additional.nameEl.textContent = "";
+            if (componentsData.additional.priceEl) componentsData.additional.priceEl.textContent = "";
+            if (componentsData.additional.totalEl) componentsData.additional.totalEl.textContent = "";
+        }
+
+        // Cập nhật giá và thành tiền cho các linh kiện chính
+        let totalPrice = 0;
+        
+        Object.keys(componentsData).forEach(type => {
+            if (type === 'additional') return; // Đã xử lý ở trên
+            
+            const data = componentsData[type];
+            if (data.element && data.element.value) {
+                const option = data.element.options[data.element.selectedIndex];
+                if (option) {
+                    try {
+                        let component = null;
+                        try {
+                            component = getComponentFromOptions(window.allComponents, type, data.element.value);
+                        } catch (error) {
+                            console.log(`Could not get component from allComponents: ${error.message}`);
+                        }
+
+                        if (!component) {
+                            // Nếu không tìm thấy trong allComponents, sử dụng thông tin từ option
+                            let price = 0;
+                            if (option.dataset && option.dataset.price) {
+                                price = parseInt(option.dataset.price, 10);
+                            } else {
+                                // Trích xuất giá từ text nếu có định dạng như "Tên - XXX,XXX VNĐ"
+                                const text = option.text || '';
+                                const priceMatch = text.match(/(\d[\d\s,\.]*)\s*VNĐ/);
+                                if (priceMatch && priceMatch[1]) {
+                                    price = parseInt(priceMatch[1].replace(/[\s,\.]/g, ''), 10);
+                                }
+                            }
+                            component = { 
+                                name: option.text || type, 
+                                price: price
+                            };
+                        }
+
+                        if (component) {
+                            const price = component.price || 0;
+                            
+                            // Trích xuất tên sản phẩm từ text (loại bỏ phần giá nếu có)
+                            let name = component.name || '';
+                            if (name.includes(' - ')) {
+                                name = name.split(' - ')[0];
+                            }
+                            
+                            if (data.nameEl) data.nameEl.textContent = name;
+                            if (data.priceEl) data.priceEl.textContent = formatPrice(price);
+                            if (data.totalEl) data.totalEl.textContent = formatPrice(price);
+                            
+                            totalPrice += price;
+                        }
+                    } catch (error) {
+                        console.error(`Error updating price for ${type}:`, error);
+                    }
+                }
+            } else {
+                // Nếu không có linh kiện nào được chọn, xóa thông tin
+                if (data.nameEl) data.nameEl.textContent = "";
+                if (data.priceEl) data.priceEl.textContent = "";
+                if (data.totalEl) data.totalEl.textContent = "";
+            }
+        });
+
+        // Thêm giá của linh kiện bổ sung vào tổng tiền
+        if (additionalComponent) {
+            totalPrice += additionalComponent.price || 0;
+        }
+
+        // Cập nhật tổng tiền và còn lại
+        const totalPriceCell = document.getElementById('total-price-cell');
+        const remainingPriceCell = document.getElementById('remaining-price-cell');
+        
+        if (totalPriceCell) totalPriceCell.textContent = formatPrice(totalPrice);
+        if (remainingPriceCell) remainingPriceCell.textContent = formatPrice(totalPrice);
+
+        // Cập nhật tổng tiền trên trang
+        const totalPriceDisplay = document.querySelector('#total-price p');
+        if (totalPriceDisplay) {
+            totalPriceDisplay.textContent = formatPrice(totalPrice) + ' VNĐ';
+        }
+    }
+
+    // Hàm lấy thông tin component từ danh sách tùy chọn
+    function getComponentFromOptions(componentsData, type, value) {
+        // Xử lý trường hợp componentsData không tồn tại
+        if (!componentsData) return null;
+        
+        // Xử lý trường hợp không có loại component này
+        if (!componentsData[type]) return null;
+        
+        // Xử lý trường hợp mảng rỗng
+        if (!Array.isArray(componentsData[type])) return null;
+        
+        try {
+            // Tìm component theo id
+            return componentsData[type].find(comp => comp.id === value) || null;
+        } catch (error) {
+            console.error(`Error finding component (${type}, ${value}):`, error);
+            return null;
+        }
+    }
+
+    // Định dạng giá tiền
+    function formatPrice(price) {
+        return price ? price.toLocaleString() : "0";
+    }
+
+    // Gọi hàm cập nhật giá khi có thay đổi trong các dropdown
+    function setupPriceUpdateListeners() {
+        const componentIds = ['cpu', 'mainboard', 'ram', 'vga', 'ssd', 'cpuCooler', 'psu', 'case', 'hdd', 'monitor'];
+        
+        componentIds.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                // Xử lý sự kiện khi giá trị thay đổi
+                element.addEventListener('change', function() {
+                    console.log(`Component ${id} changed to ${this.value}`);
+                    // Cập nhật bảng giá thời gian thực
+                    updateComponentPrices();
+                });
+            }
+        });
+        
+        console.log('Price update listeners set up successfully');
+    }
+
+    // Khởi tạo khi trang đã tải xong
+    document.addEventListener('DOMContentLoaded', function() {
+        // Thiết lập các sự kiện lắng nghe cho việc cập nhật giá
+        setupPriceUpdateListeners();
+        
+        // Đảm bảo rằng bảng linh kiện trống khi mới tải trang
+        const priceCells = document.querySelectorAll('[id$="-price"], [id$="-total"], [id$="-name"]');
+        priceCells.forEach(cell => {
+            if (cell) cell.textContent = '';
+        });
+        
+        console.log('Component table initialized with empty values');
+        
+        // Cập nhật giá nếu đã có component được chọn (cho trường hợp refresh trang)
+        setTimeout(updateComponentPrices, 1000);
+    });
+
+    // Hàm cập nhật giá trị dropdown
+    function updateDropdown(id, value) {
+        const dropdown = document.getElementById(id);
+        if (!dropdown) {
+            console.error(`Dropdown with id ${id} not found`);
+            return false;
+        }
+
+        // Nếu value không được cung cấp, không làm gì cả
+        if (!value) {
+            console.warn(`No value provided for dropdown ${id}`);
+            return false;
+        }
+
+        console.log(`Attempting to set ${id} dropdown to value: ${value}`);
+
+        // Tìm option phù hợp
+        let foundOption = false;
+        let optionToSelect = null;
+
+        // Phương pháp 1: Tìm chính xác theo value
+        for (let i = 0; i < dropdown.options.length; i++) {
+            const option = dropdown.options[i];
+            if (option.value.toLowerCase() === value.toLowerCase()) {
+                optionToSelect = option;
+                foundOption = true;
+                console.log(`Found exact match for ${id}: ${option.text}`);
+                break;
+            }
+        }
+
+        // Phương pháp 2: Tìm option có chứa value
+        if (!foundOption) {
+            for (let i = 0; i < dropdown.options.length; i++) {
+                const option = dropdown.options[i];
+                // Kiểm tra nếu value nằm trong option.value hoặc option.text
+                if (option.value.toLowerCase().includes(value.toLowerCase()) || 
+                    option.text.toLowerCase().includes(value.toLowerCase())) {
+                    optionToSelect = option;
+                    foundOption = true;
+                    console.log(`Found partial match for ${id}: ${option.text}`);
+                    break;
+                }
+            }
+        }
+
+        // Phương pháp 3: Dùng option đầu tiên không phải là disabled & placeholder
+        if (!foundOption) {
+            for (let i = 0; i < dropdown.options.length; i++) {
+                const option = dropdown.options[i];
+                if (!option.disabled && option.value) {
+                    optionToSelect = option;
+                    foundOption = true;
+                    console.log(`Using first available option for ${id}: ${option.text}`);
+                    break;
+                }
+            }
+        }
+
+        // Cập nhật giá trị dropdown nếu tìm thấy option
+        if (foundOption && optionToSelect) {
+            dropdown.value = optionToSelect.value;
+            // Kích hoạt sự kiện change để cập nhật giao diện
+            const event = new Event('change', { bubbles: true });
+            dropdown.dispatchEvent(event);
+            return true;
+        } else {
+            console.warn(`Could not find suitable option for ${id} with value ${value}`);
+            return false;
+        }
+    }
+}
