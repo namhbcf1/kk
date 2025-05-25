@@ -18,65 +18,96 @@ import { getConfig, intelConfigs, amdConfigs } from './js/configs/index.js';
 // Add global checkSocketCompatibility function at the beginning of the file
 // This ensures it's available everywhere before any other code tries to use it
 window.checkSocketCompatibility = function(cpuKey, mainboardKey) {
-    const socketMessage = document.getElementById('socket-message');
-    if (!socketMessage) return;
+    // Find or create socket message element
+    let socketMessage = document.getElementById('socket-message');
+    if (!socketMessage) {
+        socketMessage = document.createElement('div');
+        socketMessage.id = 'socket-message';
+        socketMessage.style.margin = '10px 0';
+        socketMessage.style.padding = '10px';
+        socketMessage.style.borderRadius = '5px';
+        socketMessage.style.display = 'none';
+        
+        // Insert message after socket info
+        const socketInfo = document.getElementById('socket-info');
+        if (socketInfo && socketInfo.parentNode) {
+            socketInfo.parentNode.insertBefore(socketMessage, socketInfo.nextSibling);
+        } else {
+            // Or insert at the top of components grid
+            const componentsGrid = document.querySelector('.components-grid') || document.querySelector('.component-container');
+            if (componentsGrid) {
+                componentsGrid.insertBefore(socketMessage, componentsGrid.firstChild);
+            }
+        }
+    }
     
     try {
-        if (!cpuKey || !mainboardKey || !window.cpuData || !window.cpuData[cpuKey] || !window.mainboardData || !window.mainboardData[mainboardKey]) {
+        if (!cpuKey || !mainboardKey || !window.cpuData[cpuKey] || !window.mainboardData[mainboardKey]) {
             socketMessage.style.display = 'none';
-            return;
+            return false;
         }
 
         const cpu = window.cpuData[cpuKey];
         const mainboard = window.mainboardData[mainboardKey];
         
-        // Lấy thông tin socket từ dữ liệu thực tế
-        const cpuSocket = cpu.socket;
-        const mbSockets = mainboard.sockets || [mainboard.socket]; // Hỗ trợ cả trường hợp sockets là mảng và socket là string
+        // Get socket information from actual data
+        const cpuSocket = cpu.socket || getCPUSocketFromName(cpu.name);
+        const mbSocket = mainboard.socket || getMainboardSocketFromName(mainboard.name);
+        const mbSockets = mainboard.sockets || [mbSocket]; 
         
-        console.log(`Checking compatibility: CPU socket = ${cpuSocket}, Mainboard sockets = ${JSON.stringify(mbSockets)}`);
+        console.log(`Enhanced compatibility check: CPU socket = ${cpuSocket}, Mainboard sockets = ${JSON.stringify(mbSockets)}`);
         
-        // Kiểm tra xem socket CPU có được hỗ trợ bởi mainboard không
+        // Check if CPU socket is supported by mainboard
         const isCompatible = Array.isArray(mbSockets) 
             ? mbSockets.includes(cpuSocket)
             : mbSockets === cpuSocket;
         
+        // Update UI based on compatibility
         if (!isCompatible) {
             socketMessage.innerHTML = `<strong>Cảnh báo:</strong> CPU (${cpuSocket}) không tương thích với mainboard (${Array.isArray(mbSockets) ? mbSockets.join(', ') : mbSockets}). Vui lòng chọn lại.`;
             socketMessage.style.display = 'block';
             socketMessage.style.color = '#e74c3c';
             socketMessage.style.backgroundColor = '#fadbd8';
-            socketMessage.style.padding = '10px';
-            socketMessage.style.borderRadius = '5px';
-            socketMessage.style.margin = '10px 0';
             
-            // Hiển thị cảnh báo và log cho debug
+            // Debug warning
             console.warn(`Socket incompatibility detected: CPU ${cpuKey} (${cpuSocket}) is not compatible with mainboard ${mainboardKey} (${Array.isArray(mbSockets) ? mbSockets.join(', ') : mbSockets})`);
             
-            // Highlight các dropdown có vấn đề
+            // Highlight problematic dropdowns
             const cpuDropdown = document.getElementById('cpu');
             const mainboardDropdown = document.getElementById('mainboard');
             
             if (cpuDropdown) cpuDropdown.style.borderColor = '#e74c3c';
             if (mainboardDropdown) mainboardDropdown.style.borderColor = '#e74c3c';
+            
+            // Disable RAM dropdown if CPU and mainboard are incompatible
+            const ramDropdown = document.getElementById('ram');
+            if (ramDropdown) {
+                ramDropdown.disabled = true;
+                ramDropdown.value = '';
+            }
+            
+            return false;
         } else {
             socketMessage.style.display = 'none';
             
-            // Remove highlight nếu có
+            // Remove highlights
             const cpuDropdown = document.getElementById('cpu');
             const mainboardDropdown = document.getElementById('mainboard');
             
             if (cpuDropdown) cpuDropdown.style.borderColor = '';
             if (mainboardDropdown) mainboardDropdown.style.borderColor = '';
             
-            // Sau khi CPU và mainboard đã tương thích, thiết lập giới hạn RAM
+            // After CPU and mainboard are compatible, update RAM options
             updateRamOptionsBasedOnMainboard(mainboardKey);
+            
+            return true;
         }
     } catch (error) {
-        console.error('Error checking socket compatibility:', error);
+        console.error('Error in enhanced socket compatibility check:', error);
         socketMessage.style.display = 'none';
+        return false;
     }
-}
+};
 
 // Hàm mới: Lọc tùy chọn RAM dựa trên loại mainboard
 function updateRamOptionsBasedOnMainboard(mainboardKey) {
@@ -101,6 +132,9 @@ function updateRamOptionsBasedOnMainboard(mainboardKey) {
                 // Chưa có RAM Type, thêm mới
                 socketInfoDiv.innerHTML = `${currentText} | RAM Type: ${memoryType}`;
             }
+            
+            // Đảm bảo hiển thị thông tin socket
+            socketInfoDiv.style.display = 'block';
         }
         
         console.log(`Updating RAM options based on mainboard ${mainboardKey} with memory type: ${memoryType}`);
@@ -439,6 +473,9 @@ function filterMainboardsByCpu(cpuKey) {
             socketInfoDivUpdated.style.margin = '10px 0';
             socketInfoDivUpdated.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
             socketInfoDivUpdated.style.fontSize = '16px';
+            
+            // Đảm bảo hiển thị thông tin socket
+            socketInfoDivUpdated.style.display = 'block';
         }
         
         console.log(`Filtering mainboards by CPU socket: ${cpuSocket}`);
@@ -3446,88 +3483,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Hiển thị modal chi tiết cấu hình
     function showConfigDetailModal(configData) {
-        console.log('Enhanced showConfigDetailModal called');
-        
-        // Kiểm tra xem người dùng có đóng modal không và không phải là hiển thị cưỡng chế
-        if (window.userClosedConfigModal && !(configData && configData.forceShow)) {
-            console.log('User closed modal and not forced to show - skipping display');
-            return;
-        }
-        
-        // Kiểm tra xem có đủ các thành phần quan trọng đã được chọn chưa
-        const hasRequiredComponents = () => {
-            const cpu = document.getElementById('cpu');
-            const vga = document.getElementById('vga');
-            return cpu && cpu.value && cpu.value !== '' && 
-                   vga && vga.value && vga.value !== '';
-        };
-        
-        // Chỉ hiển thị nếu được cưỡng chế hoặc có đủ thành phần
-        if (!(configData && configData.forceShow) && !hasRequiredComponents()) {
-            console.log('Not showing configuration table - missing required components');
-            alert('Vui lòng chọn ít nhất CPU và VGA để xem bảng cấu hình');
-            return;
-        }
-        
-        // Kiểm tra và tạo modal nếu chưa tồn tại
-        let summaryModal = document.getElementById('summary-modal');
-        if (!summaryModal) {
-            console.log('Modal not found, creating it');
-            summaryModal = createModalElements();
-        }
-        
-        if (!summaryModal) {
-            console.error('Failed to create or find modal');
-            return;
-        }
-        
-        // Lấy tham chiếu đến modal và modalContent
-        const modal = summaryModal;
-        const modalContent = modal.querySelector('.modal-content');
-        
-        if (!modalContent) {
-            console.error('Modal content element not found');
-            return;
-        }
-        
-        // Đảm bảo modal hiển thị
-        modal.style.display = 'block';
-        
-        // Cập nhật dữ liệu trong modal
-        if (typeof calculateTotalPriceAndSummary === 'function') {
-            calculateTotalPriceAndSummary();
-        }
-        
-        // Hiển thị bảng chi tiết cấu hình nếu có
-        const configTable = document.getElementById('config-table');
-        if (configTable) {
-            configTable.style.display = 'block';
-            
-            // Cập nhật hình ảnh và thông tin trong bảng nếu có hàm updateConfigTableImages
-            if (typeof window.updateConfigTableImages === 'function') {
-                try {
-                    window.updateConfigTableImages();
-                } catch (error) {
-                    console.error('Error updating table images:', error);
-                }
-            }
-        }
-        
-        // Thêm sự kiện đóng modal khi click ra ngoài
-        window.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-                window.userClosedConfigModal = true;
-            }
-        });
-        
-        // Thêm sự kiện đóng modal khi nhấn ESC
-        window.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && modal.style.display === 'block') {
-                modal.style.display = 'none';
-                window.userClosedConfigModal = true;
-            }
-        });
+        // Completely disable this function to hide the modal
+        return; // Early return prevents modal display
     }
 
     // Đảm bảo window.showConfigDetailModal luôn tham chiếu đến hàm mới nhất
@@ -4258,49 +4215,8 @@ window.enhancedCheckSocketCompatibility = function(cpuKey, mainboardKey) {
 
 // Force show component table when user has selected components
 function forceShowComponentTable() {
-    const componentTableContainer = document.querySelector('.component-table-container');
-    if (componentTableContainer) {
-        componentTableContainer.style.display = 'block';
-    }
-    
-    const componentTable = document.querySelector('.component-table');
-    if (componentTable) {
-        componentTable.style.display = 'table';
-    }
-    
-    // Also ensure all rows with data are displayed
-    const cpuKey = document.getElementById('cpu')?.value;
-    const mainboardKey = document.getElementById('mainboard')?.value;
-    const vgaKey = document.getElementById('vga')?.value;
-    const ramKey = document.getElementById('ram')?.value;
-    const ssdKey = document.getElementById('ssd')?.value;
-    const psuKey = document.getElementById('psu')?.value;
-    const caseKey = document.getElementById('case')?.value;
-    const cpuCoolerKey = document.getElementById('cpuCooler')?.value;
-    
-    // Ensure total row is visible
-    const totalRow = document.getElementById('total-row');
-    if (totalRow) {
-        totalRow.style.display = 'table-row';
-    }
-    
-    // If we have at least CPU and mainboard, show the table
-    if (cpuKey && mainboardKey) {
-        // Update the component table with available components
-        updateComponentTable(cpuKey, mainboardKey, vgaKey, ramKey, ssdKey, psuKey, caseKey, cpuCoolerKey);
-        
-        // Calculate and update the total price
-        calculateTotalPriceAndSummary();
-        
-        // Update component scores if available
-        if (typeof updateScores === 'function') {
-            updateScores();
-        }
-        
-        return true;
-    }
-    
-    return false;
+    // Completely disable this function to prevent force-showing the table
+    return; // Early return prevents table display
 }
 
 // Add this function to the window load event
@@ -4383,52 +4299,9 @@ window.addEventListener('load', function() {
                         
 document.addEventListener('DOMContentLoaded', function() {
     // Tạo nút hiển thị bảng cấu hình chi tiết
-function createShowConfigButton() {
-    // Tìm vùng chứa linh kiện
-    const componentsContainer = document.querySelector('.components-grid') || document.querySelector('.component-container');
-    if (!componentsContainer) return;
-    
-    // Kiểm tra nếu nút đã tồn tại để tránh trùng lặp
-    if (document.getElementById('show-config-detail-button')) return;
-    
-    // Tạo nút
-    const showConfigButton = document.createElement('button');
-    showConfigButton.id = 'show-config-detail-button';
-    showConfigButton.className = 'action-button primary-btn';
-    showConfigButton.textContent = 'XEM BẢNG CẤU HÌNH CHI TIẾT';
-    showConfigButton.style.width = '100%';
-    showConfigButton.style.margin = '20px 0';
-    showConfigButton.style.padding = '15px';
-    showConfigButton.style.backgroundColor = '#4CAF50';
-    showConfigButton.style.color = 'white';
-    showConfigButton.style.border = 'none';
-    showConfigButton.style.borderRadius = '5px';
-    showConfigButton.style.fontSize = '18px';
-    showConfigButton.style.fontWeight = 'bold';
-    showConfigButton.style.cursor = 'pointer';
-    showConfigButton.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
-    showConfigButton.disabled = true;
-    showConfigButton.style.opacity = '0.5';
-    
-    // Thêm sự kiện click
-    showConfigButton.addEventListener('click', function() {
-        // Sử dụng hàm showConfigTable tập trung
-        if (typeof window.showConfigTable === 'function') {
-            window.showConfigTable(false); // Không cưỡng chế, chỉ hiển thị khi đủ điều kiện
-        } else {
-            // Fallback nếu không có hàm mới
-            // Hiển thị bảng cấu hình
-            if (typeof window.showConfigDetailModal === 'function') {
-                window.showConfigDetailModal();
-            } else if (typeof calculateTotalPriceAndSummary === 'function') {
-                calculateTotalPriceAndSummary();
-            }
-        }
-    });
-        
-        // Chèn nút vào cuối vùng chứa linh kiện
-        componentsContainer.appendChild(showConfigButton);
-        console.log('Added show config button to components container');
+    function createShowConfigButton() {
+        // Completely disable this function to remove the button
+        return; // Early return prevents button creation
     }
     
     // Tạo nút khi trang đã tải xong
@@ -5141,5 +5014,75 @@ document.addEventListener('DOMContentLoaded', function() {
             window.validateComponentCompatibility();
         }
     }, 1000);
+});
+                        
+// Function to enhance component compatibility filtering
+document.addEventListener('DOMContentLoaded', function() {
+    // Add enhanced filtering capabilities
+    function enhanceCompatibilityFiltering() {
+        console.log('Enhancing component compatibility filtering');
+        
+        // Get all dropdowns
+        const cpuDropdown = document.getElementById('cpu');
+        const mainboardDropdown = document.getElementById('mainboard');
+        const ramDropdown = document.getElementById('ram');
+        
+        // Ensure mainboard is disabled until CPU is selected
+        if (mainboardDropdown && cpuDropdown) {
+            mainboardDropdown.disabled = true;
+            
+            // When CPU changes, aggressively filter mainboards
+            cpuDropdown.addEventListener('change', function() {
+                if (this.value) {
+                    // Enable mainboard selection
+                    mainboardDropdown.disabled = false;
+                    
+                    // Filter mainboards by CPU
+                    filterMainboardsByCpu(this.value);
+                    
+                    // Reset RAM selection since mainboard might change
+                    if (ramDropdown) {
+                        ramDropdown.value = '';
+                        ramDropdown.disabled = true;
+                    }
+                } else {
+                    // If CPU is deselected, disable mainboard and RAM
+                    mainboardDropdown.disabled = true;
+                    mainboardDropdown.value = '';
+                    
+                    if (ramDropdown) {
+                        ramDropdown.disabled = true;
+                        ramDropdown.value = '';
+                    }
+                }
+            });
+        }
+        
+        // Ensure RAM is disabled until mainboard is selected
+        if (ramDropdown && mainboardDropdown) {
+            ramDropdown.disabled = true;
+            
+            // When mainboard changes, aggressively filter RAM
+            mainboardDropdown.addEventListener('change', function() {
+                if (this.value) {
+                    // Update RAM options based on mainboard
+                    updateRamOptionsBasedOnMainboard(this.value);
+                    
+                    // Check compatibility with selected CPU
+                    const cpuValue = cpuDropdown ? cpuDropdown.value : null;
+                    if (cpuValue) {
+                        checkSocketCompatibility(cpuValue, this.value);
+                    }
+                } else {
+                    // If mainboard is deselected, disable RAM
+                    ramDropdown.disabled = true;
+                    ramDropdown.value = '';
+                }
+            });
+        }
+    }
+    
+    // Call the function to set up enhanced filtering
+    enhanceCompatibilityFiltering();
 });
                         
