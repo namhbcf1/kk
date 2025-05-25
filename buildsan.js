@@ -118,23 +118,16 @@ function updateRamOptionsBasedOnMainboard(mainboardKey) {
         const mainboard = window.mainboardData[mainboardKey];
         const memoryType = mainboard.memoryType; // Lấy loại RAM từ mainboard (DDR3, DDR4, DDR5)
         
-        // Cập nhật thông tin RAM type trên UI
+        // Không hiển thị thông tin RAM type trên UI nữa
         const socketInfoDiv = document.getElementById('socket-info');
         if (socketInfoDiv) {
-            // Giữ nguyên phần CPU và Mainboard, chỉ cập nhật RAM Type
-            const currentText = socketInfoDiv.innerHTML;
-            const ramTypeIndex = currentText.indexOf('RAM Type:');
-            if (ramTypeIndex !== -1) {
-                // Đã có RAM Type, cập nhật
-                const beforeRamType = currentText.substring(0, ramTypeIndex);
-                socketInfoDiv.innerHTML = `${beforeRamType}RAM Type: ${memoryType}`;
-            } else {
-                // Chưa có RAM Type, thêm mới
-                socketInfoDiv.innerHTML = `${currentText} | RAM Type: ${memoryType}`;
-            }
-            
             // Đảm bảo hiển thị thông tin socket
             socketInfoDiv.style.display = 'block';
+        }
+        
+        // Đảm bảo RAM dropdown được kích hoạt sau khi chọn mainboard
+        if (ramDropdown) {
+            ramDropdown.disabled = false;
         }
         
         console.log(`Updating RAM options based on mainboard ${mainboardKey} with memory type: ${memoryType}`);
@@ -272,6 +265,9 @@ function updateRamOptionsBasedOnMainboard(mainboardKey) {
                     
                     console.log(`RAM Compatibility Check: ${ramName} (${ramType}) with ${mbName} (${mbRamType})`);
                     
+                    // Nếu không có loại RAM rõ ràng, luôn cho phép chọn
+                    if (!mbRamType || !ramType) return true;
+                    
                     // Mặc định, RAM phải cùng loại với mainboard
                     return ramType === mbRamType;
                 }
@@ -371,6 +367,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (cpuDropdown && cpuDropdown.value) {
                     checkSocketCompatibility(cpuDropdown.value, this.value);
                 }
+                
+                // Đảm bảo RAM dropdown được kích hoạt
+                const ramDropdown = document.getElementById('ram');
+                if (ramDropdown) {
+                    ramDropdown.disabled = false;
+                }
             }
         });
     }
@@ -431,39 +433,14 @@ function filterMainboardsByCpu(cpuKey) {
         // Cập nhật thông tin socket
         const socketInfoDivUpdated = document.getElementById('socket-info');
         if (socketInfoDivUpdated) {
-            // Xác định thông tin RAM type từ CPU
-            let ramType = 'DDR4'; // Mặc định
-            
-            // Xác định theo tên CPU
-            if (cpu.name.includes('Intel') || cpu.name.includes('Core')) {
-                if (cpu.name.includes('12') || cpu.name.includes('13')) {
-                    // Intel 12th/13th gen có thể dùng DDR4 hoặc DDR5 tùy mainboard
-                    ramType = 'DDR4/DDR5';
-                } else {
-                    ramType = 'DDR4';
-                }
-            } else if (cpu.name.includes('Ryzen')) {
-                if (cpu.name.includes('7000')) {
-                    ramType = 'DDR5';
-                } else {
-                    ramType = 'DDR4';
-                }
-            }
-            
-            // Sử dụng thông tin từ CPU nếu có
-            if (cpu.memoryType) {
-                ramType = cpu.memoryType;
-            }
-            
             // Lấy socket từ CPU được chọn
             const detectedCpuSocket = getCPUSocketFromName(cpu.name);
             const finalCpuSocket = cpuSocket || detectedCpuSocket;
             
-            // Hiển thị với màu nổi bật
+            // Hiển thị với màu nổi bật - đã xóa phần RAM Type
             socketInfoDivUpdated.innerHTML = `
                 <span style="color:#1e88e5; font-weight:bold;">CPU Socket: ${finalCpuSocket}</span> | 
-                <span style="color:#43a047; font-weight:bold;">Mainboard Socket: ${finalCpuSocket}</span> | 
-                <span style="color:#e53935; font-weight:bold;">RAM Type: ${ramType}</span>
+                <span style="color:#43a047; font-weight:bold;">Mainboard Socket: ${finalCpuSocket}</span>
             `;
             
             // Thêm style cho div
@@ -4248,53 +4225,7 @@ window.addEventListener('load', function() {
         }
     }
     
-    // Chỉ tạo một nút nổi bật ở cuối trang để hiển thị bảng cấu hình
-    const showTableBtn = document.createElement('button');
-    showTableBtn.id = 'main-config-button';
-    showTableBtn.textContent = '👉 XEM BẢNG CẤU HÌNH CHI TIẾT 👈';
-    showTableBtn.style.position = 'fixed';
-    showTableBtn.style.bottom = '20px';
-    showTableBtn.style.left = '50%';
-    showTableBtn.style.transform = 'translateX(-50%)';
-    showTableBtn.style.padding = '15px 25px';
-    showTableBtn.style.backgroundColor = '#4CAF50';
-    showTableBtn.style.color = 'white';
-    showTableBtn.style.border = 'none';
-    showTableBtn.style.borderRadius = '5px';
-    showTableBtn.style.fontSize = '18px';
-    showTableBtn.style.fontWeight = 'bold';
-    showTableBtn.style.zIndex = '9999';
-    showTableBtn.style.cursor = 'pointer';
-    showTableBtn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
-    showTableBtn.style.display = 'block';
-    showTableBtn.style.opacity = '0.9';
-    showTableBtn.disabled = true;
-    
-    // Thêm animation nhẹ
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes pulse-button {
-            0% { transform: translateX(-50%) scale(1); }
-            50% { transform: translateX(-50%) scale(1.05); }
-            100% { transform: translateX(-50%) scale(1); }
-        }
-        #main-config-button:not(:disabled) {
-            animation: pulse-button 2s infinite;
-        }
-    `;
-    document.head.appendChild(style);
-    
-    showTableBtn.addEventListener('click', function() {
-        if (typeof window.showConfigTable === 'function') {
-            window.showConfigTable(false);
-        } else if (typeof window.showConfigDetailModal === 'function') {
-            // Reset the closed state since this is an explicit user action
-            window.userClosedConfigModal = false;
-            window.showConfigDetailModal();
-        }
-    });
-    
-    document.body.appendChild(showTableBtn);
+    // Button removed
 });
                         
 document.addEventListener('DOMContentLoaded', function() {
@@ -4357,52 +4288,7 @@ document.addEventListener('DOMContentLoaded', function() {
                               document.querySelector('.component-container');
         
         if (componentsArea && !document.getElementById('config-detail-button')) {
-            // Tạo nút hiển thị bảng cấu hình nổi bật
-            const configButton = document.createElement('button');
-            configButton.id = 'config-detail-button';
-            configButton.textContent = '👉 XEM BẢNG CẤU HÌNH CHI TIẾT 👈';
-            configButton.style.position = 'sticky';
-            configButton.style.bottom = '20px';
-            configButton.style.left = '50%';
-            configButton.style.transform = 'translateX(-50%)';
-            configButton.style.zIndex = '1000';
-            configButton.style.padding = '15px 25px';
-            configButton.style.fontSize = '16px';
-            configButton.style.fontWeight = 'bold';
-            configButton.style.backgroundColor = '#4CAF50';
-            configButton.style.color = 'white';
-            configButton.style.border = 'none';
-            configButton.style.borderRadius = '5px';
-            configButton.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
-            configButton.style.cursor = 'pointer';
-            configButton.style.animation = 'pulse 2s infinite';
-            
-            // Thêm style cho animation
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes pulse {
-                    0% { transform: translateX(-50%) scale(1); }
-                    50% { transform: translateX(-50%) scale(1.05); }
-                    100% { transform: translateX(-50%) scale(1); }
-                }
-            `;
-            document.head.appendChild(style);
-            
-            // Thêm sự kiện click
-            configButton.addEventListener('click', function() {
-                // Reset trạng thái đóng bảng
-                window.userClosedConfigModal = false;
-                
-                // Hiển thị bảng cấu hình
-                if (typeof window.showConfigDetailModal === 'function') {
-                    window.showConfigDetailModal();
-                } else if (typeof calculateTotalPriceAndSummary === 'function') {
-                    calculateTotalPriceAndSummary();
-                }
-            });
-            
-            // Thêm nút vào trang
-            document.body.appendChild(configButton);
+            // Configuration detail button completely removed
         }
     }, 1000);
 });
@@ -4563,77 +4449,8 @@ function createModalElements() {
 // Thêm nút hiển thị bảng cấu hình chính ở cuối trang sau khi đã chọn các thành phần
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
-        // Kiểm tra xem nút đã tồn tại chưa và tránh tạo trùng lặp
-        if (!document.getElementById('show-config-modal-button') && !document.getElementById('show-config-button')) {
-            // Tạo container cho nút
-            const configButtonContainer = document.createElement('div');
-            configButtonContainer.style.textAlign = 'center';
-            configButtonContainer.style.margin = '30px 0';
-            configButtonContainer.style.padding = '20px';
-            
-            // Tạo nút hiển thị bảng cấu hình
-            const showModalButton = document.createElement('button');
-            showModalButton.id = 'show-config-modal-button';
-            showModalButton.innerText = 'XEM BẢNG CẤU HÌNH CHI TIẾT';
-            showModalButton.style.padding = '15px 30px';
-            showModalButton.style.fontSize = '18px';
-            showModalButton.style.fontWeight = 'bold';
-            showModalButton.style.backgroundColor = '#e91e63';
-            showModalButton.style.color = 'white';
-            showModalButton.style.border = 'none';
-            showModalButton.style.borderRadius = '5px';
-            showModalButton.style.cursor = 'pointer';
-            showModalButton.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
-            showModalButton.style.transition = 'all 0.3s ease';
-            
-            // Mặc định nút bị vô hiệu hóa cho đến khi chọn đủ thành phần
-            showModalButton.disabled = true;
-            showModalButton.style.opacity = '0.5';
-            showModalButton.style.cursor = 'not-allowed';
-            
-            // Hàm kiểm tra đủ thành phần chính
-            function checkRequiredComponents() {
-                const cpu = document.getElementById('cpu');
-                const mainboard = document.getElementById('mainboard');
-                const vga = document.getElementById('vga');
-                return cpu && cpu.value && mainboard && mainboard.value && vga && vga.value;
-            }
-            
-            // Thêm sự kiện click
-            showModalButton.addEventListener('click', function() {
-                if (this.disabled) return;
-                
-                // Gọi hàm hiển thị bảng cấu hình
-                if (typeof window.showConfigDetailModal === 'function') {
-                    window.userClosedConfigModal = false; // Reset trạng thái đóng
-                    window.showConfigDetailModal({forceShow: true});
-                }
-            });
-            
-            // Thêm nút vào container và container vào cuối trang
-            configButtonContainer.appendChild(showModalButton);
-            
-            // Thêm vào phần components-grid hoặc body nếu không tìm thấy
-            const componentsGrid = document.querySelector('.components-grid');
-            if (componentsGrid) {
-                componentsGrid.appendChild(configButtonContainer);
-            } else {
-                document.body.appendChild(configButtonContainer);
-            }
-            
-            console.log('Added main config table button to page');
-            
-            // Kiểm tra định kỳ để kích hoạt nút khi đã chọn đủ thành phần
-            const checkInterval = setInterval(function() {
-                if (checkRequiredComponents()) {
-                    showModalButton.disabled = false;
-                    showModalButton.style.opacity = '1';
-                    showModalButton.style.cursor = 'pointer';
-                    showModalButton.style.backgroundColor = '#4CAF50';
-                    clearInterval(checkInterval);
-                }
-            }, 1000);
-        }
+        // Đã loại bỏ hoàn toàn việc tạo nút hiển thị bảng cấu hình chi tiết
+        console.log('Config detail button creation disabled');
     }, 1000);
 });
                         
@@ -5022,40 +4839,45 @@ document.addEventListener('DOMContentLoaded', function() {
     function enhanceCompatibilityFiltering() {
         console.log('Enhancing component compatibility filtering');
         
-        // Get all dropdowns
-        const cpuDropdown = document.getElementById('cpu');
-        const mainboardDropdown = document.getElementById('mainboard');
-        const ramDropdown = document.getElementById('ram');
-        
-        // Ensure mainboard is disabled until CPU is selected
-        if (mainboardDropdown && cpuDropdown) {
-            mainboardDropdown.disabled = true;
+                    // Get all dropdowns
+            const cpuDropdown = document.getElementById('cpu');
+            const mainboardDropdown = document.getElementById('mainboard');
+            const ramDropdown = document.getElementById('ram');
             
-            // When CPU changes, aggressively filter mainboards
-            cpuDropdown.addEventListener('change', function() {
-                if (this.value) {
-                    // Enable mainboard selection
-                    mainboardDropdown.disabled = false;
-                    
-                    // Filter mainboards by CPU
-                    filterMainboardsByCpu(this.value);
-                    
-                    // Reset RAM selection since mainboard might change
-                    if (ramDropdown) {
-                        ramDropdown.value = '';
-                        ramDropdown.disabled = true;
-                    }
-                } else {
-                    // If CPU is deselected, disable mainboard and RAM
-                    mainboardDropdown.disabled = true;
-                    mainboardDropdown.value = '';
-                    
-                    if (ramDropdown) {
-                        ramDropdown.disabled = true;
-                        ramDropdown.value = '';
-                    }
+            // Ensure mainboard is disabled until CPU is selected
+            if (mainboardDropdown && cpuDropdown) {
+                mainboardDropdown.disabled = true;
+                
+                // Make sure RAM is not disabled
+                if (ramDropdown) {
+                    ramDropdown.disabled = false;
                 }
-            });
+                
+                // When CPU changes, aggressively filter mainboards
+                cpuDropdown.addEventListener('change', function() {
+                    if (this.value) {
+                        // Enable mainboard selection
+                        mainboardDropdown.disabled = false;
+                        
+                        // Filter mainboards by CPU
+                        filterMainboardsByCpu(this.value);
+                        
+                        // Reset RAM selection since mainboard might change
+                        if (ramDropdown) {
+                            ramDropdown.value = '';
+                            ramDropdown.disabled = false; // Make sure RAM is not disabled
+                        }
+                    } else {
+                        // If CPU is deselected, disable mainboard and RAM
+                        mainboardDropdown.disabled = true;
+                        mainboardDropdown.value = '';
+                        
+                        if (ramDropdown) {
+                            ramDropdown.disabled = true;
+                            ramDropdown.value = '';
+                        }
+                    }
+                });
         }
         
         // Ensure RAM is disabled until mainboard is selected
