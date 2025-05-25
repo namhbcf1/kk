@@ -1316,7 +1316,7 @@
                     'monitor': document.getElementById('monitor')
                 };
                 
-                // Lấy dữ liệu từ components-data.js
+                // Lấy dữ liệu từ window object sau khi imports đã hoàn thành
                 const componentsData = {
                     'cpu': window.cpuData || {},
                     'mainboard': window.mainboardData || {},
@@ -1335,7 +1335,7 @@
                     const dropdown = componentDropdowns[componentType];
                     const data = componentsData[componentType];
                     
-                    if (dropdown && Object.keys(data).length > 0 && dropdown.options.length <= 1) {
+                    if (dropdown && data && Object.keys(data).length > 0 && dropdown.options.length <= 1) {
                         // Xóa tất cả options hiện tại trừ option đầu tiên (thường là placeholder)
                         const placeholderOption = dropdown.options[0];
                         dropdown.innerHTML = '';
@@ -1349,6 +1349,8 @@
                             const option = document.createElement('option');
                             option.value = key;
                             option.text = `${component.name} - ${formatPrice(component.price)} VNĐ`;
+                            option.dataset.price = component.price;
+                            option.dataset.image = component.image;
                             dropdown.appendChild(option);
                         });
                         
@@ -1366,579 +1368,73 @@
         function formatPrice(price) {
             return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
-
-        // Hàm initPerformance cho các thao tác khởi tạo hiệu năng
-        function initPerformance() {
-            console.log('Initializing performance metrics...');
-            try {
-                // Khởi tạo biểu đồ nếu chưa có
-                const performanceChart = document.getElementById('performance-chart');
-                if (performanceChart && typeof Chart !== 'undefined') {
-                    // Kiểm tra xem đã có instance của Chart chưa
-                    if (!window.performanceChartInstance) {
-                        window.performanceChartInstance = new Chart(performanceChart, {
-                            type: 'radar',
-                            data: {
-                                labels: ['Gaming', 'Đồ họa', 'Văn phòng', 'Livestream', 'Render video', 'Đa nhiệm'],
-                                datasets: [{
-                                    label: 'Hiệu năng',
-                                    data: [0, 0, 0, 0, 0, 0],
-                                    fill: true,
-                                    backgroundColor: 'rgba(255, 152, 0, 0.2)',
-                                    borderColor: 'rgb(255, 152, 0)',
-                                    pointBackgroundColor: 'rgb(255, 152, 0)',
-                                    pointBorderColor: '#fff',
-                                    pointHoverBackgroundColor: '#fff',
-                                    pointHoverBorderColor: 'rgb(255, 87, 34)'
-                                }]
-                            },
-                            options: {
-                                elements: {
-                                    line: {
-                                        borderWidth: 3
-                                    }
-                                },
-                                scales: {
-                                    r: {
-                                        suggestedMin: 0,
-                                        suggestedMax: 100
-                                    }
-                                }
-                            }
-                        });
-                    }
-                }
-
-                // Khởi tạo các thành phần hiệu năng khác
-                document.querySelectorAll('.progress-bar').forEach(bar => {
-                    if (!bar.style.width || bar.style.width === '0%') {
-                        bar.style.width = '0%';
-                    }
-                });
-
-                // Kiểm tra và đánh giá hiệu năng nếu có CPU và GPU được chọn
-                const cpuDropdown = document.getElementById('cpu');
-                const vgaDropdown = document.getElementById('vga');
-
-                if (cpuDropdown && vgaDropdown && 
-                    cpuDropdown.value && vgaDropdown.value && 
-                    typeof updateAllPerformanceMetrics === 'function') {
-                    updateAllPerformanceMetrics();
-                }
-
-                console.log('Performance metrics initialized successfully');
-            } catch (error) {
-                console.error('Error initializing performance metrics:', error);
-            }
-        }
-
-        // Xử lý sự kiện tự động chọn cấu hình khi đủ 3 tiêu chí
-        function checkAndRunAutoSelect() {
-            const gameId = document.getElementById('game-genre').value;
-            const budget = parseInt(document.getElementById('budget-range').value);
-            const cpuType = document.getElementById('cpu-type').value;
-            
-            console.log('----------- Auto Select Check -----------');
-            console.log('Game Genre:', gameId || 'not selected');
-            console.log('Budget:', budget ? budget.toLocaleString() + ' VND' : 'not set');
-            console.log('CPU Type:', cpuType || 'not selected');
-            
-            // Check if the CPU type is valid
-            if (cpuType) {
-                console.log('CPU Type normalized:', cpuType.toLowerCase() === 'intel' ? 'Intel' : 'Amd');
-            }
-            
-            // Check if all criteria are met
-            if (gameId && budget && cpuType) {
-                console.log('✅ All criteria met, running autoSelectConfig...');
-                try {
-                    if (typeof autoSelectConfig === 'function') {
-                        // Debug config availability before calling
-                        if (cpuType.toLowerCase() === 'intel' && window.intelConfigs) {
-                            console.log('Available Intel games:', Object.keys(window.intelConfigs));
-                            if (window.intelConfigs[gameId]) {
-                                console.log('Available budgets for this game:', Object.keys(window.intelConfigs[gameId]));
-                            }
-                        } else if (cpuType.toLowerCase() === 'amd' && window.amdConfigs) {
-                            console.log('Available AMD games:', Object.keys(window.amdConfigs));
-                            if (window.amdConfigs[gameId]) {
-                                console.log('Available budgets for this game:', Object.keys(window.amdConfigs[gameId]));
-                            }
-                        }
-                        
-                        const result = autoSelectConfig(gameId, budget, cpuType);
-                        console.log('autoSelectConfig result:', result ? 'Success' : 'Failed');
-                    } else {
-                        console.error('❌ autoSelectConfig function not available');
-                        }
-                } catch (error) {
-                    console.error('❌ Error running autoSelectConfig:', error);
-                }
-            } else {
-                console.log('❌ Not all criteria are met for auto-selection');
-            }
-            console.log('----------- End Auto Select Check -----------');
-        }
-
+        
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 await loadRequiredLibraries();
-                populateDropdowns();
-                initPerformance();
                 
-                // Thiết lập các giá trị component cần thiết ở dạng trống
-                const componentCells = {
-                    'cpu-name': '', 'cpu-price': '', 'cpu-total': '',
-                    'mainboard-name': '', 'mainboard-price': '', 'mainboard-total': '',
-                    'ram-name': '', 'ram-price': '', 'ram-total': '',
-                    'vga-name': '', 'vga-price': '', 'vga-total': '',
-                    'ssd-name': '', 'ssd-price': '', 'ssd-total': '',
-                    'cpu-cooler-name': '', 'cpu-cooler-price': '', 'cpu-cooler-total': '',
-                    'psu-name': '', 'psu-price': '', 'psu-total': '',
-                    'case-name': '', 'case-price': '', 'case-total': '',
-                    'additional-component-name': '', 'additional-component-price': '', 'additional-component-total': '',
-                    'monitor-name': '', 'monitor-price': '', 'monitor-total': ''
+                // Wait for component data to be loaded
+                const checkComponentData = () => {
+                    if (window.cpuData && window.vgaData) {
+                        populateDropdowns();
+                        console.log('Component data loaded, populating dropdowns');
+                    } else {
+                        console.log('Waiting for component data to load...');
+                        setTimeout(checkComponentData, 100);
+                    }
                 };
                 
-                // Xóa nội dung các ô ban đầu
-                Object.keys(componentCells).forEach(cellId => {
-                    const cell = document.getElementById(cellId);
-                    if (cell) {
-                        cell.textContent = componentCells[cellId];
-                    }
-                });
+                checkComponentData();
                 
-                // Xóa nội dung các ô tính tiền
-                document.getElementById('total-price-cell').textContent = '0';
-                document.getElementById('remaining-price-cell').textContent = '0';
+                // Make sure config table is hidden initially
+                const configTable = document.getElementById('config-table');
+                if (configTable) {
+                    configTable.style.display = 'none';
+                }
                 
-                console.log('Component table initialized with empty values');
-                
-                // Kích hoạt tự động chọn cấu hình sau khi trang được tải
-                /* Đã tắt tính năng tự động chọn cấu hình khi tải trang
-                setTimeout(() => {
-                    const gameGenre = document.getElementById('game-genre').value;
-                    const budget = parseInt(document.getElementById('budget-range').value);
-                    const cpuType = document.getElementById('cpu-type').value;
-                    
-                    if (gameGenre && budget && cpuType) {
-                        console.log('Initial criteria check for auto-selection:');
-                        console.log('- Game:', gameGenre);
-                        console.log('- Budget:', budget);
-                        console.log('- CPU Type:', cpuType);
+                // Register event listener for the calculate button
+                const calculateButton = document.getElementById('calculate-button');
+                if (calculateButton && configTable) {
+                    calculateButton.addEventListener('click', function() {
+                        // Check if any components are selected
+                        const componentIds = ['cpu', 'mainboard', 'ram', 'vga', 'ssd', 'cpuCooler', 'psu', 'case', 'hdd', 'monitor'];
+                        let anyComponentSelected = false;
                         
-                        try {
-                            window.autoSelectConfig(gameGenre, budget, cpuType);
-                        } catch (error) {
-                            console.error('Error in initial autoSelectConfig:', error);
+                        for (const id of componentIds) {
+                            const select = document.getElementById(id);
+                            if (select && select.value) {
+                                anyComponentSelected = true;
+                                break;
+                            }
                         }
-                    }
-                }, 1000);
-                */
+                        
+                        if (anyComponentSelected) {
+                            // If component-connector.js has loaded our function
+                            if (typeof window.updateConfigTableImages === 'function') {
+                                window.updateConfigTableImages();
+                            }
+                            
+                            // Show the config table
+                            configTable.style.display = 'block';
+                            console.log('Configuration table shown with updated component data');
+                        } else {
+                            // No components selected
+                            alert('Vui lòng chọn ít nhất một linh kiện trước khi xem chi tiết.');
+                            console.log('No components selected, not showing table');
+                        }
+                    });
+                }
+                
             } catch (error) {
                 console.error('Error during initialization:', error);
             }
         });
-
-        // Game card click handler
-        function handleGameCardClick(gameId) {
-            console.log('Game card clicked:', gameId);
-            try {
-                displayDetailedPerformance(gameId);
-            } catch (error) {
-                console.error('Error displaying game performance:', error);
-            }
-        }
-
-        // JavaScript cho các tính năng mới will be handled in event-handlers.js
-
-        // Fix lỗi trùng lặp khai báo hàm
-        document.addEventListener('DOMContentLoaded', () => {
-            // Fix cho lỗi trùng lặp khai báo hàm trong buildsan.js
-            window.getScoreColor = function(score) {
-                if (score >= 90) return '#2ecc71'; // Excellent - Green
-                if (score >= 70) return '#27ae60'; // Very Good - Dark Green
-                if (score >= 50) return '#f1c40f'; // Good - Yellow
-                if (score >= 30) return '#e67e22'; // Fair - Orange
-                return '#e74c3c'; // Poor - Red
-            };
-            
-            // Định nghĩa lại hàm getScoreColor để tránh lỗi trùng lặp
-            Object.defineProperty(window, 'getScoreColor', {
-                value: window.getScoreColor,
-                writable: false,
-                configurable: false
-            });
-            
-            // Fix cho lỗi Cannot set property top of #<Window>
-            const readOnlyProps = ['top', 'parent', 'self', 'window', 'frames', 'location'];
-            readOnlyProps.forEach(prop => {
-                try {
-                    const descriptor = Object.getOwnPropertyDescriptor(window, prop);
-                    if (descriptor && !descriptor.configurable) {
-                        console.log(`Property ${prop} is read-only, applying fix`);
-                        
-                        // Tạo proxy để bắt tất cả attempts để set thuộc tính
-                        const originalValue = window[prop];
-                        Object.defineProperty(window, prop + '_safe', {
-                            get: () => originalValue,
-                            set: () => console.warn(`Cannot set read-only property: ${prop}`),
-                            configurable: true
-                        });
-                    }
-                } catch (e) {
-                    console.warn(`Error setting up fix for property ${prop}:`, e);
-                }
-            });
-            
-            // Fix cho call stack size exceeded
-            if (typeof window.getComputedStyle !== 'function' || window._originalGetComputedStyle) return;
-            
-            window._originalGetComputedStyle = window.getComputedStyle;
-            window.getComputedStyle = function(element, pseudoElt) {
-                if (!element) return {};
-                
-                try {
-                    // Avoid recursion for problematic elements
-                    if (element instanceof HTMLCanvasElement) {
-                        return {
-                            getPropertyValue: function() { return ''; }
-                        };
-                    }
-                    
-                    return window._originalGetComputedStyle(element, pseudoElt);
-                } catch (e) {
-                    console.error('Error in getComputedStyle override:', e);
-                    return {};
-                }
-            };
-        });
-
-        const darkModeToggle = document.getElementById('dark-mode-toggle');
-        if (darkModeToggle) {
-            darkModeToggle.addEventListener('click', function() {
-                document.body.classList.toggle('dark-mode');
-                const icon = this.querySelector('i');
-                if(document.body.classList.contains('dark-mode')) {
-                    icon.classList.remove('fa-moon');
-                    icon.classList.add('fa-sun');
-                } else {
-                    icon.classList.remove('fa-sun');
-                    icon.classList.add('fa-moon');
-                }
-            });
-        }
-
-        // Khởi tạo smoothscroll cho Safari/iOS
-        if (window.smoothscrollPolyfill) smoothscrollPolyfill.polyfill();
-        // Khởi tạo ripple effect cho button
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.MaterialRipple) {
-                document.querySelectorAll('button, .action-button, .primary-btn, .secondary-btn, .accent-btn').forEach(btn => {
-                    new window.MaterialRipple(btn);
-                });
-            }
-            // Thêm hiệu ứng animate cho card, modal, button
-            document.querySelectorAll('.component, .component-card, .modal, .action-button, .primary-btn, .secondary-btn, .accent-btn').forEach(el => {
-                el.classList.add('animate__animated','animate__fadeInUp');
-            });
-        });
-
-        // --- Progress Stepper Real-time Highlight ---
-        function updateProgressSteps() {
-            // Bước 1: Ngân sách
-            const budgetValue = document.getElementById('budget-range').value;
-            const step1 = document.querySelector('.progress-step[data-step="1"]');
-            if (budgetValue && parseInt(budgetValue) > 0) {
-                step1.classList.add('active');
-            } else {
-                step1.classList.remove('active');
-            }
-            // Bước 2: CPU
-            const cpuType = document.getElementById('cpu-type').value;
-            const step2 = document.querySelector('.progress-step[data-step="2"]');
-            if (cpuType) {
-                step2.classList.add('active');
-            } else {
-                step2.classList.remove('active');
-            }
-            // Bước 3: Game
-            const gameGenre = document.getElementById('game-genre').value;
-            const step3 = document.querySelector('.progress-step[data-step="3"]');
-            if (gameGenre) {
-                step3.classList.add('active');
-            } else {
-                step3.classList.remove('active');
-            }
-            // Bước 4: Linh kiện (chỉ cần chọn 1 linh kiện)
-            const cpu = document.getElementById('cpu').value;
-            const vga = document.getElementById('vga').value;
-            const step4 = document.querySelector('.progress-step[data-step="4"]');
-            if (cpu && vga) {
-                step4.classList.add('active');
-            } else {
-                step4.classList.remove('active');
-            }
-            // Bước 5: Hoàn thành (nếu tất cả các bước trên đã chọn)
-            const step5 = document.querySelector('.progress-step[data-step="5"]');
-            if (step1.classList.contains('active') && step2.classList.contains('active') && step3.classList.contains('active') && step4.classList.contains('active')) {
-                step5.classList.add('active');
-            } else {
-                step5.classList.remove('active');
-            }
-        }
-        // Lắng nghe sự kiện thay đổi
-        ['budget-range','cpu-type','game-genre','cpu','vga'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('change', updateProgressSteps);
-        });
-        // Lắng nghe click vào game-card để cập nhật ngay
-        const gameCards = document.querySelectorAll('.game-card');
-        gameCards.forEach(card => card.addEventListener('click', updateProgressSteps));
-        // Gọi lần đầu khi load trang
-        updateProgressSteps();
-    </script>
-    <!-- Script kết nối các component -->
-    <script src="component-connector.js"></script>
-    
-    <!-- Event handlers script -->
-    <script src="event-handlers.js"></script>
-
-    <!-- Script for modal close button functionality -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Fix for modal close button
-            const fixModalCloseButtons = function() {
-                const modal = document.querySelector('.modal');
-                if (!modal) return;
-                
-                // Find all close buttons
-                const closeButtons = modal.querySelectorAll('.close-modal, .close');
-                
-                closeButtons.forEach(button => {
-                    // Remove existing event listeners
-                    const newButton = button.cloneNode(true);
-                    if (button.parentNode) {
-                        button.parentNode.replaceChild(newButton, button);
-                    }
-                    
-                    // Add new event listener
-                    newButton.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Close button clicked');
-                        
-                        // Hide the modal
-                        if (modal) {
-                            modal.style.display = 'none';
-                        }
-                        
-                        return false;
-                    });
-                });
-                
-                // Also close when clicking outside the modal
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            };
-            
-            // Run initially
-            fixModalCloseButtons();
-            
-            // Also run when certain buttons are clicked
-            const modalTriggerButtons = document.querySelectorAll('#view-breakdown, #calculate-button');
-            modalTriggerButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Give time for the modal to open
-                    setTimeout(fixModalCloseButtons, 100);
-                });
-            });
-        });
-    </script>
-
-    <!-- Load component data from modules -->
-    <script type="module" src="./components-importer.js"></script>
-
-    <!-- Scripts tải không đồng bộ ở cuối trang -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/tippy.js@6" defer></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tippy.js@6/dist/tippy.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" media="print" onload="this.media='all'"/>
-    <script src="https://cdn.jsdelivr.net/npm/smoothscroll-polyfill@0.4.4/dist/smoothscroll.min.js" defer></script>
-    <script src="./modal-handler.js" defer></script>
-    
-    <!-- Scripts tối ưu hiệu suất -->
-    <script src="./image-optimizer.js" defer></script>
-    <script src="./css-optimizer.js" defer></script>
-    <script src="./compression.js" defer></script>
-
-    <!-- Thêm các script modules -->
-    <script type="module" src="js/data/cpu.js"></script>
-    <script type="module" src="js/data/mainboard.js"></script>
-    <script type="module" src="js/data/vga.js"></script>
-    <script type="module" src="js/data/ram.js"></script>
-    <script type="module" src="js/data/ssd.js"></script>
-    <script type="module" src="js/data/psu.js"></script>
-    <script type="module" src="js/data/case.js"></script>
-    <script type="module" src="js/data/cpuCooler.js"></script>
-    <script type="module" src="js/data/hdd.js"></script>
-    <script type="module" src="js/data/monitor.js"></script>
-    <script src="js/configs/index.js" type="module"></script>
-    
-    <!-- Expose configs and getConfig to window for non-module scripts -->
-    <script type="module">
-        import { getConfig, intelConfigs, amdConfigs } from './js/configs/index.js';
         
-        // Expose to window object immediately
-        window.getConfig = getConfig;
-        window.intelConfigs = intelConfigs;
-        window.amdConfigs = amdConfigs;
-        
-        console.log('✅ Configs và getConfig đã được đăng ký vào window object');
-        console.log('- Intel games:', Object.keys(intelConfigs));
-        console.log('- AMD games:', Object.keys(amdConfigs));
-        
-        // Kiểm tra hàm getConfig
-        window.testGetConfig = function() {
-            const configs = {
-                intel: window.getConfig('Intel', 'pubg', '3M'),
-                amd: window.getConfig('Amd', 'pubg', '3M')
-            };
-            console.log('TEST getConfig results:', configs);
-            return configs;
-        };
-        
-        // Tự động chạy một test
-        setTimeout(() => {
-            console.log('Running config test...');
-            window.testGetConfig();
-        }, 1000);
+        // Đảm bảo updateConfigTableImages có thể truy cập toàn cục
+        window.formatPrice = formatPrice;
     </script>
-
-    <!-- JavaScript to create and update CPU mode indicator -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Create CPU mode indicator
-            const indicator = document.createElement('div');
-            indicator.id = 'cpu-mode-indicator';
-            indicator.textContent = 'CPU MODE: INTEL';
-            document.body.appendChild(indicator);
-            
-            // Set default mode
-            document.body.classList.add('intel-mode');
-            
-            // Update indicator when CPU type changes
-            const cpuTypeDropdown = document.getElementById('cpu-type');
-            if (cpuTypeDropdown) {
-                cpuTypeDropdown.addEventListener('change', function() {
-                    // Remove existing mode classes
-                    document.body.classList.remove('intel-mode', 'amd-mode');
-                    
-                    // Add appropriate class
-                    if (this.value === 'Intel') {
-                        document.body.classList.add('intel-mode');
-                        indicator.textContent = 'CPU MODE: INTEL';
-                    } else if (this.value === 'Amd') {
-                        document.body.classList.add('amd-mode');
-                        indicator.textContent = 'CPU MODE: AMD';
-                    }
-                });
-            }
-        });
-    </script>
-
-    <!-- Add game selection handler -->
-    <script>
-        // Make sure game selection properly triggers auto-select
-        document.addEventListener('DOMContentLoaded', function() {
-            const gameGenreDropdown = document.getElementById('game-genre');
-            if (gameGenreDropdown) {
-                gameGenreDropdown.addEventListener('change', function() {
-                    console.log("Game selection changed to:", this.value);
-                    
-                    // Get budget and CPU type
-                    const budget = parseInt(document.getElementById('budget-range').value);
-                    const cpuType = document.getElementById('cpu-type').value;
-                    
-                    if (this.value && budget && cpuType) {
-                        console.log(`Calling autoSelectConfig with game=${this.value}, budget=${budget}, cpuType=${cpuType}`);
-                        
-                        // Ensure autoSelectConfig is available
-                        if (typeof window.autoSelectConfig === 'function') {
-                            window.autoSelectConfig(this.value, budget, cpuType);
-                        } else {
-                            console.error("autoSelectConfig function not available");
-                        }
-                    } else {
-                        console.log("Not enough data for auto-select:", {
-                            game: this.value,
-                            budget: budget,
-                            cpuType: cpuType
-                        });
-                    }
-                });
-                
-                console.log("✅ Game selection change handler added");
-            } else {
-                console.error("❌ Game genre dropdown not found");
-            }
-            
-            // Also handle budget changes
-            const budgetRange = document.getElementById('budget-range');
-            if (budgetRange) {
-                budgetRange.addEventListener('change', function() {
-                    console.log("Budget changed to:", this.value);
-                    
-                    // Get game and CPU type
-                    const game = document.getElementById('game-genre').value;
-                    const cpuType = document.getElementById('cpu-type').value;
-                    
-                    if (game && this.value && cpuType) {
-                        console.log(`Calling autoSelectConfig with game=${game}, budget=${this.value}, cpuType=${cpuType}`);
-                        
-                        // Ensure autoSelectConfig is available
-                        if (typeof window.autoSelectConfig === 'function') {
-                            window.autoSelectConfig(game, parseInt(this.value), cpuType);
-                        } else {
-                            console.error("autoSelectConfig function not available");
-                        }
-                    }
-                });
-                
-                console.log("✅ Budget change handler added");
-            }
-            
-            // Thêm xử lý để hiển thị bảng cấu hình khi nhấn nút XEM CHI TIẾT VÀ ĐÁNH GIÁ
-            const calculateButton = document.getElementById('calculate-button');
-            const configTable = document.getElementById('config-table');
-            
-            if (calculateButton && configTable) {
-                calculateButton.addEventListener('click', function() {
-                    // Kiểm tra xem có linh kiện nào được chọn không
-                    const cpu = document.getElementById('cpu').value;
-                    const vga = document.getElementById('vga').value;
-                    
-                    if (cpu || vga) {
-                        // Có ít nhất một linh kiện được chọn, hiển thị bảng
-                        configTable.style.display = 'block';
-                        console.log('Showing component config table');
-                    } else {
-                        // Không có linh kiện nào được chọn, thông báo cho người dùng
-                        alert('Vui lòng chọn ít nhất một linh kiện trước khi xem chi tiết.');
-                        console.log('No components selected, not showing table');
-                    }
-                });
-                
-                console.log("✅ Calculate button handler added");
-            }
-        });
-    </script>
+<!-- ... existing code ... -->
 </body>
 
 </html>
