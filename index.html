@@ -1758,6 +1758,9 @@
         });
     </script>
 
+    <!-- Load component data from modules -->
+    <script type="module" src="./components-importer.js"></script>
+
     <!-- Scripts tải không đồng bộ ở cuối trang -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
@@ -1816,44 +1819,6 @@
         }, 1000);
     </script>
 
-    <!-- Nút hiển thị cấu hình đã chọn -->
-    <div class="d-grid gap-2 mt-4">
-        <button type="button" id="calculate-button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#configModal">
-            <i class="bi bi-list-check me-2"></i> Xem Cấu Hình Đã Chọn
-        </button>
-    </div>
-
-    <!-- Script để tự động hiển thị cấu hình -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Đảm bảo nút tính toán có thể được nhấn tự động
-            const calculateButton = document.getElementById('calculate-button');
-            if (calculateButton) {
-                console.log('✅ Calculate button found and ready for automatic trigger');
-            }
-            
-            // Thêm một trình lắng nghe sự kiện cho CPU type dropdown để theo dõi các thay đổi
-            const cpuTypeDropdown = document.getElementById('cpu-type');
-            if (cpuTypeDropdown) {
-                cpuTypeDropdown.addEventListener('change', function() {
-                    console.log('CPU type changed to:', this.value);
-                    
-                    // Ghi nhớ giá trị CPU type vào local storage
-                    localStorage.setItem('selectedCpuType', this.value);
-                    
-                    // Thêm class màu sắc cho body để biểu thị loại CPU
-                    if (this.value === 'Intel') {
-                        document.body.classList.remove('amd-mode');
-                        document.body.classList.add('intel-mode');
-                    } else {
-                        document.body.classList.remove('intel-mode');
-                        document.body.classList.add('amd-mode');
-                    }
-                });
-            }
-        });
-    </script>
-
     <!-- JavaScript to create and update CPU mode indicator -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1883,173 +1848,6 @@
                     }
                 });
             }
-        });
-    </script>
-
-    <!-- Simple ripple effect fallback in case CDN fails -->
-    <script>
-        // Simple ripple effect implementation that doesn't rely on external library
-        document.addEventListener('DOMContentLoaded', function() {
-            // Create our own MaterialRipple implementation
-            window.MaterialRipple = function(element) {
-                if (!element) return;
-                
-                // Add ripple container if needed
-                let rippleContainer = element.querySelector('.ripple-container');
-                if (!rippleContainer) {
-                    rippleContainer = document.createElement('div');
-                    rippleContainer.className = 'ripple-container';
-                    rippleContainer.style.position = 'absolute';
-                    rippleContainer.style.top = '0';
-                    rippleContainer.style.left = '0';
-                    rippleContainer.style.height = '100%';
-                    rippleContainer.style.width = '100%';
-                    rippleContainer.style.overflow = 'hidden';
-                    rippleContainer.style.pointerEvents = 'none';
-                    rippleContainer.style.borderRadius = 'inherit';
-                    
-                    // Make sure the element has position relative
-                    const computedStyle = getComputedStyle(element);
-                    if (computedStyle.position !== 'relative' && computedStyle.position !== 'absolute') {
-                        element.style.position = 'relative';
-                    }
-                    
-                    element.appendChild(rippleContainer);
-                }
-                
-                element.addEventListener('mousedown', function(e) {
-                    createRipple(e, rippleContainer);
-                });
-                
-                element.addEventListener('touchstart', function(e) {
-                    createRipple(e.touches[0], rippleContainer);
-                });
-            };
-            
-            function createRipple(event, container) {
-                // Don't create ripple if already processing one
-                if (container.querySelector('.ripple-effect')) {
-                    const existingRipple = container.querySelector('.ripple-effect');
-                    existingRipple.remove();
-                }
-                
-                const ripple = document.createElement('div');
-                ripple.className = 'ripple-effect';
-                
-                // Get the largest dimension
-                const rect = container.getBoundingClientRect();
-                const rippleSize = Math.max(rect.width, rect.height) * 2;
-                
-                ripple.style.width = rippleSize + 'px';
-                ripple.style.height = rippleSize + 'px';
-                ripple.style.position = 'absolute';
-                ripple.style.borderRadius = '50%';
-                ripple.style.background = 'rgba(255, 255, 255, 0.4)';
-                ripple.style.transform = 'scale(0)';
-                ripple.style.pointerEvents = 'none';
-                ripple.style.transition = 'transform 0.5s, opacity 0.5s';
-                
-                // Position the ripple
-                const x = event.clientX - rect.left - (rippleSize / 2);
-                const y = event.clientY - rect.top - (rippleSize / 2);
-                ripple.style.left = x + 'px';
-                ripple.style.top = y + 'px';
-                
-                // Add to container
-                container.appendChild(ripple);
-                
-                // Start animation
-                setTimeout(() => {
-                    ripple.style.transform = 'scale(1)';
-                    ripple.style.opacity = '0';
-                }, 10);
-                
-                // Clean up
-                setTimeout(() => {
-                    if (ripple && ripple.parentNode) {
-                        ripple.parentNode.removeChild(ripple);
-                    }
-                }, 500);
-            }
-            
-            // Apply to all buttons
-            const elements = document.querySelectorAll('button, .btn, .action-button, .primary-btn, .secondary-btn, .accent-btn');
-            elements.forEach(function(element) {
-                new MaterialRipple(element);
-            });
-            
-            console.log('Custom ripple effect initialized');
-        });
-    </script>
-
-    <!-- Make sure to load configurations before the main scripts -->
-    <script src="js/configs/index.js" type="module"></script>
-
-    <!-- Add this to ensure handleCpuTypeSelection is available -->
-    <script>
-        // Make sure handleCpuTypeSelection is always available
-        window.ensureHandleCpuTypeSelectionAvailable = function() {
-            if (typeof window.handleCpuTypeSelection !== 'function') {
-                console.log('Creating fallback handleCpuTypeSelection function');
-                window.handleCpuTypeSelection = function(cpuType) {
-                    console.log(`Fallback handleCpuTypeSelection called with: ${cpuType}`);
-                    
-                    // Update dropdown
-                    const cpuTypeDropdown = document.getElementById('cpu-type');
-                    if (cpuTypeDropdown) {
-                        cpuTypeDropdown.value = cpuType;
-                        
-                        // Trigger change event
-                        try {
-                            const event = new Event('change', { bubbles: true });
-                            cpuTypeDropdown.dispatchEvent(event);
-                        } catch (e) {
-                            console.error('Error dispatching change event:', e);
-                        }
-                    }
-                    
-                    // Update body attributes and classes
-                    document.body.setAttribute('data-selected-cpu-type', cpuType);
-                    document.body.classList.remove('intel-mode', 'amd-mode');
-                    document.body.classList.add(cpuType.toLowerCase() + '-mode');
-                    localStorage.setItem('selectedCpuType', cpuType);
-                    
-                    // Update visual indicators
-                    const intelOption = document.getElementById('intel-option');
-                    const amdOption = document.getElementById('amd-option');
-                    
-                    if (intelOption && amdOption) {
-                        if (cpuType === 'Intel') {
-                            intelOption.classList.add('selected');
-                            amdOption.classList.remove('selected');
-                        } else {
-                            amdOption.classList.add('selected');
-                            intelOption.classList.remove('selected');
-                        }
-                    }
-                    
-                    // Try to update configs if possible
-                    if (typeof window.autoSelectConfig === 'function') {
-                        const gameDropdown = document.getElementById('game-genre');
-                        const budgetRange = document.getElementById('budget-range');
-                        
-                        if (gameDropdown && gameDropdown.value && budgetRange && budgetRange.value) {
-                            const gameId = gameDropdown.value;
-                            const budget = parseInt(budgetRange.value);
-                            console.log(`Auto-selecting config: game=${gameId}, budget=${budget}, cpu=${cpuType}`);
-                            window.autoSelectConfig(gameId, budget, cpuType);
-                        }
-                    }
-                };
-            }
-        };
-        
-        // Run this on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            window.ensureHandleCpuTypeSelectionAvailable();
-            
-            // Also run after a short delay to ensure it's set even if other scripts remove it
-            setTimeout(window.ensureHandleCpuTypeSelectionAvailable, 1000);
         });
     </script>
 
