@@ -2493,6 +2493,16 @@ document.addEventListener('DOMContentLoaded', function () {
     function showConfigDetailModal(configData) {
         console.log('Enhanced showConfigDetailModal called - displaying configuration table');
         
+        // Hiển thị bảng chi tiết cấu hình
+        const configTable = document.getElementById('config-table');
+        if (configTable) {
+            configTable.style.display = 'block';
+            // Cập nhật hình ảnh và thông tin trong bảng nếu có hàm updateConfigTableImages
+            if (typeof window.updateConfigTableImages === 'function') {
+                window.updateConfigTableImages();
+            }
+        }
+        
         // Find modal
         const modal = document.querySelector('.modal');
         const modalContent = modal ? modal.querySelector('.modal-content') : null;

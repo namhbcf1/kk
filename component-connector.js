@@ -715,6 +715,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show the config table
                 configTable.style.display = 'block';
                 console.log('Configuration table shown with updated component data');
+                
+                // Scroll to the config table
+                configTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else {
                 // No components selected
                 alert('Vui lòng chọn ít nhất một linh kiện trước khi xem chi tiết.');

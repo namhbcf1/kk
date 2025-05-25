@@ -365,6 +365,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             // Alternative method
                             window.showConfigDetailModal();
                         }
+                        
+                        // Hiển thị bảng cấu hình
+                        const configTable = document.getElementById('config-table');
+                        if (configTable) {
+                            configTable.style.display = 'block';
+                            // Cập nhật hình ảnh và thông tin
+                            if (typeof window.updateConfigTableImages === 'function') {
+                                window.updateConfigTableImages();
+                            }
+                            // Cuộn đến bảng
+                            configTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
                     }, 800); // Slightly longer delay to ensure configurations are loaded
                 }
             }

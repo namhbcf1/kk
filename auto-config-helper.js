@@ -339,11 +339,93 @@ function autoSelectConfigEnhanced(gameId, budget, cpuType) {
         try {
             updateComponentPricesFixed();
             console.log('Price table updated after auto-selection');
+            
+            // Hiển thị bảng cấu hình sau khi chọn tất cả linh kiện
+            const configTable = document.getElementById('config-table');
+            if (configTable) {
+                configTable.style.display = 'block';
+                // Cập nhật hình ảnh và thông tin trong bảng nếu có hàm updateConfigTableImages
+                if (typeof window.updateConfigTableImages === 'function') {
+                    try {
+                        window.updateConfigTableImages();
+                        console.log('Configuration table images updated successfully');
+                    } catch (error) {
+                        console.error('Error updating configuration table images:', error);
+                    }
+                }
+            }
+            
+            // Nếu có hàm showConfigDetailModal, gọi nó để hiển thị modal
+            if (typeof window.showConfigDetailModal === 'function') {
+                console.log('Showing configuration detail modal');
+                window.showConfigDetailModal();
+            }
         } catch (error) {
             console.error('Error updating prices after auto-selection:', error);
         }
     }, 500);
     
+    // Kiểm tra tương thích socket giữa CPU và Mainboard
+    function ensureCompatibleComponents() {
+        const cpuSelect = document.getElementById('cpu');
+        const mainboardSelect = document.getElementById('mainboard');
+        
+        if (!cpuSelect || !mainboardSelect || !cpuSelect.value || !mainboardSelect.value) {
+            return; // Không đủ thông tin để kiểm tra
+        }
+        
+        // Lấy thông tin CPU
+        const cpuData = getComponentData ? getComponentData('CPU', cpuSelect.value) : null;
+        // Lấy thông tin Mainboard
+        const mainboardData = getComponentData ? getComponentData('Mainboard', mainboardSelect.value) : null;
+        
+        if (!cpuData || !mainboardData) {
+            return; // Không đủ dữ liệu để kiểm tra
+        }
+        
+        // Kiểm tra socket tương thích
+        const cpuSocket = cpuData.socket || '';
+        const mainboardSocket = mainboardData.socket || '';
+        
+        if (cpuSocket && mainboardSocket && cpuSocket !== mainboardSocket) {
+            console.warn(`Socket không tương thích: CPU (${cpuSocket}) và Mainboard (${mainboardSocket})`);
+            
+            // Tìm mainboard tương thích với CPU đã chọn
+            if (cpuSocket.includes('AM4')) {
+                // Chọn mainboard AMD
+                const amdMainboards = ['GIGA-B450', 'JGINYUE-B450', 'GIGA-B550', 'asrock-b550m-se', 'gigabyte-b550m-gaming-wifi'];
+                for (const mainboardId of amdMainboards) {
+                    updateDropdownEnhanced('mainboard', mainboardId);
+                    break;
+                }
+            } else if (cpuSocket.includes('AM5')) {
+                // Chọn mainboard AMD mới
+                const amdMainboards = ['JGINYUE-B650', 'JGINYUE-B650-PRO', 'ASROCK-B650M-HDV-M2', 'MSI-PRO-B650M-P'];
+                for (const mainboardId of amdMainboards) {
+                    updateDropdownEnhanced('mainboard', mainboardId);
+                    break;
+                }
+            } else if (cpuSocket.includes('LGA1151') || cpuSocket.includes('LGA1200')) {
+                // Chọn mainboard Intel cũ
+                const intelMainboards = ['H310', 'B360', 'B365', 'H410', 'B460'];
+                for (const mainboardId of intelMainboards) {
+                    updateDropdownEnhanced('mainboard', mainboardId);
+                    break;
+                }
+            } else if (cpuSocket.includes('LGA1700')) {
+                // Chọn mainboard Intel mới
+                const intelMainboards = ['ASUS-H610', 'MSI-H610', 'HNZ-H610', 'ASUS-B760', 'MSI-B760', 'B760M-E'];
+                for (const mainboardId of intelMainboards) {
+                    updateDropdownEnhanced('mainboard', mainboardId);
+                    break;
+                }
+            }
+        }
+    }
+
+    // Gọi hàm kiểm tra tương thích sau khi chọn cấu hình
+    setTimeout(ensureCompatibleComponents, 600);
+
     return config;
 }
 
