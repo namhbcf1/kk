@@ -327,6 +327,15 @@ function updateConfigTableImages() {
     updateTotalPrice();
 }
 
+// Make functions available globally
+window.updateConfigTableImages = updateConfigTableImages;
+window.updateTotalPrice = updateTotalPrice;
+window.collectConfigData = collectConfigData;
+window.getComponentData = getComponentData;
+window.getComponentSpecs = getComponentSpecs;
+window.getComponentImageUrl = getComponentImageUrl;
+window.formatPrice = formatPrice;
+
 (function() {
     // Kiểm tra DOM đã sẵn sàng chưa
     document.addEventListener('DOMContentLoaded', initConnector);
@@ -732,13 +741,4 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
-});
-
-// Make functions available globally
-window.updateConfigTableImages = updateConfigTableImages;
-window.updateTotalPrice = updateTotalPrice;
-window.collectConfigData = collectConfigData;
-window.getComponentData = getComponentData;
-window.getComponentSpecs = getComponentSpecs;
-window.getComponentImageUrl = getComponentImageUrl;
-window.formatPrice = formatPrice; 
+}); 
