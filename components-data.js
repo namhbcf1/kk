@@ -163,11 +163,50 @@ const mainboardData = {
         pcieVersion: "3.0",
         formFactor: "Micro-ATX",
         score: 4
+    },
+    "JGINYUE-B450": {
+        name: "JGinyue B450M-TI (AM4)",
+        price: 1390000,
+        image: "https://via.placeholder.com/150x150.png?text=JGinyue+B450M-TI",
+        brand: "JGinyue",
+        warranty: "36 tháng",
+        sockets: ["AM4"],
+        memoryType: "DDR4",
+        condition: "New",
+        nvmeSlots: 1,
+        pcieVersion: "3.0",
+        formFactor: "Micro-ATX",
+        score: 4
+    },
+    "JGINYUE-B650": {
+        name: "JGinyue B650M-D (AM5)",
+        price: 1900000,
+        image: "https://via.placeholder.com/150x150.png?text=JGinyue+B650M-D",
+        brand: "JGinyue",
+        warranty: "36 tháng",
+        sockets: ["AM5"],
+        memoryType: "DDR5",
+        condition: "New",
+        nvmeSlots: 2,
+        pcieVersion: "4.0",
+        formFactor: "Micro-ATX",
+        score: 6
     }
 };
 
 // VGA data
 const vgaData = {
+    "960": {
+        name: "NVIDIA GeForce GTX 960 2GB",
+        price: 1200000,
+        image: "https://via.placeholder.com/150x150.png?text=GTX+960",
+        brand: "NVIDIA",
+        warranty: "12 tháng",
+        memory: "2GB GDDR5",
+        bus: "PCI-Express 3.0",
+        condition: "2ND",
+        score: 2
+    },
     "1050ti": {
         name: "NVIDIA GeForce GTX 1050Ti 4GB",
         price: 1500000,
@@ -178,6 +217,17 @@ const vgaData = {
         bus: "PCI-Express 3.0",
         condition: "2ND",
         score: 3
+    },
+    "1060-3g": {
+        name: "NVIDIA GeForce GTX 1060 3GB",
+        price: 2200000,
+        image: "https://via.placeholder.com/150x150.png?text=GTX+1060+3GB",
+        brand: "NVIDIA",
+        warranty: "12 tháng",
+        memory: "3GB GDDR5",
+        bus: "PCI-Express 3.0",
+        condition: "2ND",
+        score: 4
     },
     "1660s": {
         name: "NVIDIA GeForce GTX 1660 Super",
@@ -190,6 +240,39 @@ const vgaData = {
         condition: "New",
         score: 5
     },
+    "2060t": {
+        name: "NVIDIA GeForce RTX 2060 6GB",
+        price: 4500000,
+        image: "https://via.placeholder.com/150x150.png?text=RTX+2060",
+        brand: "NVIDIA",
+        warranty: "36 tháng",
+        memory: "6GB GDDR6",
+        bus: "PCI-Express 3.0",
+        condition: "New",
+        score: 6
+    },
+    "2060s": {
+        name: "NVIDIA GeForce RTX 2060 Super",
+        price: 5800000,
+        image: "https://via.placeholder.com/150x150.png?text=RTX+2060+Super",
+        brand: "NVIDIA",
+        warranty: "36 tháng",
+        memory: "8GB GDDR6",
+        bus: "PCI-Express 3.0",
+        condition: "New",
+        score: 6
+    },
+    "2070s": {
+        name: "NVIDIA GeForce RTX 2070 Super",
+        price: 6500000,
+        image: "https://via.placeholder.com/150x150.png?text=RTX+2070+Super",
+        brand: "NVIDIA",
+        warranty: "36 tháng",
+        memory: "8GB GDDR6",
+        bus: "PCI-Express 3.0",
+        condition: "New",
+        score: 7
+    },
     "3060": {
         name: "NVIDIA GeForce RTX 3060",
         price: 7000000,
@@ -201,6 +284,28 @@ const vgaData = {
         condition: "New",
         score: 7
     },
+    "3060ti": {
+        name: "NVIDIA GeForce RTX 3060 Ti",
+        price: 8500000,
+        image: "https://via.placeholder.com/150x150.png?text=RTX+3060+Ti",
+        brand: "NVIDIA",
+        warranty: "36 tháng",
+        memory: "8GB GDDR6X",
+        bus: "PCI-Express 4.0",
+        condition: "New",
+        score: 7
+    },
+    "3070": {
+        name: "NVIDIA GeForce RTX 3070",
+        price: 10000000,
+        image: "https://via.placeholder.com/150x150.png?text=RTX+3070",
+        brand: "NVIDIA",
+        warranty: "36 tháng",
+        memory: "8GB GDDR6",
+        bus: "PCI-Express 4.0",
+        condition: "New",
+        score: 8
+    },
     "3070ti": {
         name: "NVIDIA GeForce RTX 3070 Ti",
         price: 11000000,
@@ -211,6 +316,17 @@ const vgaData = {
         bus: "PCI-Express 4.0",
         condition: "New",
         score: 8
+    },
+    "3080": {
+        name: "NVIDIA GeForce RTX 3080",
+        price: 13000000,
+        image: "https://via.placeholder.com/150x150.png?text=RTX+3080",
+        brand: "NVIDIA",
+        warranty: "36 tháng",
+        memory: "10GB GDDR6X",
+        bus: "PCI-Express 4.0",
+        condition: "New",
+        score: 9
     },
     "4060": {
         name: "NVIDIA GeForce RTX 4060",
