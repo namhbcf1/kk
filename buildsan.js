@@ -125,46 +125,55 @@ function updateRamOptionsBasedOnMainboard(mainboardKey) {
                 function determineRamCompatibility(ram, mainboard) {
                     if (!ram || !mainboard) return false;
                     
-                    const ramType = ram.type || '';
+                    // Xác định loại RAM
+                    let ramType = ram.type || '';
+                    if (!ramType) {
+                        if (ram.name.includes('DDR5')) ramType = 'DDR5';
+                        else if (ram.name.includes('DDR4')) ramType = 'DDR4';
+                        else if (ram.name.includes('DDR3')) ramType = 'DDR3';
+                        else if (ram.name.includes('Bus 6000') || ram.name.includes('Bus 5200')) ramType = 'DDR5';
+                        else if (ram.name.includes('Bus 3200')) ramType = 'DDR4';
+                        else if (ram.name.includes('1600MHz')) ramType = 'DDR3';
+                    }
+                    
+                    // Xác định loại RAM hỗ trợ bởi mainboard
+                    let mbRamType = mainboard.memoryType || '';
+                    
+                    // Kiểm tra tên mainboard để xác định loại RAM hỗ trợ
                     const mbName = mainboard.name || '';
-                    const defaultMemoryType = mainboard.memoryType || 'DDR4';
+                    
+                    if (!mbRamType) {
+                        // Xác định từ tên
+                        if (mbName.includes('DDR5')) mbRamType = 'DDR5';
+                        else if (mbName.includes('DDR4')) mbRamType = 'DDR4';
+                        else if (mbName.includes('DDR3')) mbRamType = 'DDR3';
+                        
+                        // Xác định từ socket hoặc chipset
+                        else if (mbName.includes('B650') || mbName.includes('X670')) mbRamType = 'DDR5';
+                        else if (mbName.includes('B550') || mbName.includes('X570') || mbName.includes('B450')) mbRamType = 'DDR4';
+                        else if (mbName.includes('H61') || mbName.includes('H81')) mbRamType = 'DDR3';
+                        
+                        // Socket-based detection
+                        else if (mainboard.socket === 'AM5') mbRamType = 'DDR5';
+                        else if (mainboard.socket === 'AM4') mbRamType = 'DDR4';
+                        else if (mainboard.socket === 'LGA1700') {
+                            // LGA1700 supports both DDR4 and DDR5 depending on the model
+                            if (mbName.includes('D4')) mbRamType = 'DDR4';
+                            else mbRamType = 'DDR5'; // Default to DDR5 for modern Intel boards
+                        }
+                        else if (mainboard.socket === 'LGA1200' || mainboard.socket === 'LGA1151') mbRamType = 'DDR4';
+                        else if (mainboard.socket === 'LGA1150' || mainboard.socket === 'LGA1155') mbRamType = 'DDR3';
+                        else mbRamType = 'DDR4'; // Default
+                    }
+                    
+                    // Lưu lại loại RAM đã xác định
+                    ram.type = ramType;
+                    mainboard.memoryType = mbRamType;
+                    
+                    console.log(`RAM Compatibility Check: ${ram.name} (${ramType}) with ${mainboard.name} (${mbRamType})`);
                     
                     // Mặc định, RAM phải cùng loại với mainboard
-                    if (ramType !== defaultMemoryType) return false;
-                    
-                    // Kiểm tra đặc biệt cho Intel
-                    if (mbName.includes('H610') || mbName.includes('B660') || mbName.includes('H510')) {
-                        // Các bo mạch H610, B660, H510 chỉ hỗ trợ DDR4
-                        return ramType === 'DDR4';
-                    }
-                    
-                    // Kiểm tra cho Z690/Z790
-                    if (mbName.includes('Z690') || mbName.includes('Z790')) {
-                        if (mbName.includes('DDR4')) {
-                            return ramType === 'DDR4';
-                        } else if (mbName.includes('DDR5')) {
-                            return ramType === 'DDR5';
-                        } else {
-                            // Mặc định là DDR5 cho Z690/Z790
-                            return ramType === 'DDR5';
-                        }
-                    }
-                    
-                    // Kiểm tra cho AMD
-                    if (mbName.includes('B450') || mbName.includes('B550') || mbName.includes('X570')) {
-                        // Chỉ hỗ trợ DDR4
-                        return ramType === 'DDR4';
-                    }
-                    
-                    // Nếu có loại DDR rõ ràng trong tên bo mạch
-                    if (mbName.includes('DDR4')) {
-                        return ramType === 'DDR4';
-                    } else if (mbName.includes('DDR5')) {
-                        return ramType === 'DDR5';
-                    }
-                    
-                    // Mặc định kiểm tra với loại RAM của mainboard
-                    return ramType === defaultMemoryType;
+                    return ramType === mbRamType;
                 }
                 
                 // Kiểm tra tương thích RAM
@@ -390,55 +399,56 @@ function filterMainboardsByCpu(cpuKey) {
                 
                 // Hàm tự tạo xác định tương thích giữa CPU và mainboard
                 function determineCpuMainboardCompatibility(cpu, mainboard) {
+                    // Đảm bảo có dữ liệu
                     if (!cpu || !mainboard) return false;
                     
-                    const cpuName = cpu.name || '';
-                    const cpuSocket = cpu.socket || '';
-                    const mbName = mainboard.name || '';
-                    const mbSocket = Array.isArray(mainboard.sockets) ? mainboard.sockets : [mainboard.socket || ''];
+                    // Xác định socket CPU
+                    let cpuSocket = cpu.socket;
+                    if (!cpuSocket && cpu.name) {
+                        cpuSocket = getCPUSocketFromName(cpu.name);
+                    }
                     
-                    // Kiểm tra tương thích theo nhà sản xuất
-                    const isAMDCpu = cpuSocket.includes('AM4') || cpuName.includes('AMD') || cpuName.includes('Ryzen');
-                    const isIntelCpu = cpuSocket.includes('LGA') || cpuName.includes('Intel') || cpuName.includes('Core');
+                    // Xác định socket mainboard
+                    let mbSocket = mainboard.socket;
+                    if (!mbSocket && mainboard.name) {
+                        mbSocket = getMainboardSocketFromName(mainboard.name);
+                    }
                     
-                    const isAMDBoard = mbSocket.some(s => s.includes('AM4')) || 
-                                      mbName.includes('B450') || 
-                                      mbName.includes('B550') || 
-                                      mbName.includes('X570');
+                    // Xử lý trường hợp mainboard hỗ trợ nhiều socket
+                    const mbSockets = mainboard.sockets || [mbSocket];
                     
-                    const isIntelBoard = mbSocket.some(s => s.includes('LGA')) || 
-                                        mbName.includes('H610') || 
-                                        mbName.includes('B660') || 
-                                        mbName.includes('Z690');
+                    // Lưu socket vào đối tượng để sử dụng sau này
+                    cpu.socket = cpuSocket;
+                    mainboard.socket = mbSocket;
                     
-                    // Kiểm tra AMD CPU với AMD Board
-                    if (isAMDCpu && !isAMDBoard) return false;
+                    // Kiểm tra tương thích
+                    if (!cpuSocket || !mbSocket) return false;
                     
-                    // Kiểm tra Intel CPU với Intel Board
-                    if (isIntelCpu && !isIntelBoard) return false;
-                    
-                    // Kiểm tra chi tiết cho Intel
-                    if (isIntelCpu) {
-                        if ((cpuName.includes('12') || cpuName.includes('13')) && 
-                            !(mbName.includes('H610') || mbName.includes('B660') || mbName.includes('Z690'))) {
-                            return false;
-                        }
+                    // Đặc biệt kiểm tra tương thích CPU Ryzen 7000/9000 với mainboard AM5
+                    if ((cpu.name.includes('Ryzen 7') || cpu.name.includes('Ryzen 9')) && 
+                        (cpu.name.includes('7600') || cpu.name.includes('7700') || cpu.name.includes('7800') || 
+                         cpu.name.includes('7900') || cpu.name.includes('7950') ||
+                         cpu.name.includes('9600') || cpu.name.includes('9700') || cpu.name.includes('9800') || 
+                         cpu.name.includes('9900') || cpu.name.includes('9950'))) {
                         
-                        if ((cpuName.includes('10') || cpuName.includes('11')) && 
-                            !(mbName.includes('B560') || mbName.includes('Z590') || mbName.includes('H510'))) {
-                            return false;
-                        }
+                        // Các CPU này cần mainboard AM5
+                        return mbSocket === 'AM5' || mbSockets.includes('AM5');
                     }
                     
-                    // Kiểm tra chi tiết cho AMD
-                    if (isAMDCpu) {
-                        if (cpuName.includes('5') && // Ryzen 5000 series
-                            !(mbName.includes('B550') || mbName.includes('X570'))) {
-                            return false;
-                        }
+                    // Kiểm tra tương thích CPU Intel 12/13/14th Gen với mainboard LGA1700
+                    if (cpu.name.includes('Intel') && 
+                        (cpu.name.includes('12') || cpu.name.includes('13') || cpu.name.includes('14'))) {
+                        
+                        // Các CPU này cần mainboard LGA1700
+                        return mbSocket === 'LGA1700' || mbSockets.includes('LGA1700');
                     }
                     
-                    return true;
+                    // Kiểm tra tương thích chung
+                    if (Array.isArray(mbSockets)) {
+                        return mbSockets.includes(cpuSocket);
+                    } else {
+                        return mbSocket === cpuSocket;
+                    }
                 }
                 
                 // Xác định tương thích
@@ -1874,6 +1884,11 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // Store a reference to this function globally
     window.originalCheckSocketCompatibility = checkSocketCompatibility;
+    
+    // Đảm bảo sử dụng phiên bản chính xác của hàm kiểm tra tương thích
+    if (!window.checkSocketCompatibility) {
+        window.checkSocketCompatibility = checkSocketCompatibility;
+    }
     
     // Lấy socket CPU từ tên
     function getCPUSocketFromName(name) {
@@ -3626,8 +3641,8 @@ function updateComponentPrices() {
 // Make updateComponentPrices globally available
 window.updateComponentPrices = updateComponentPrices;
 
-// Socket compatibility check function
-function checkSocketCompatibility(cpuKey, mainboardKey) {
+// Socket compatibility enhancement
+window.extendedCheckSocketCompatibility = function(cpuKey, mainboardKey) {
     try {
         const socketMessage = document.getElementById('socket-message');
         if (!socketMessage) {
@@ -3824,66 +3839,64 @@ document.addEventListener('DOMContentLoaded', function() {
 // 2. Ensure configuration table is always displayed after any change
 
 // Fix the missing checkSocketCompatibility global reference
-if (typeof window.checkSocketCompatibility !== 'function') {
-    console.log('Adding global reference to checkSocketCompatibility function');
-    window.checkSocketCompatibility = function(cpuKey, mainboardKey) {
-        const socketMessage = document.getElementById('socket-message');
-        if (!socketMessage) return;
-        
-        try {
-            if (!cpuKey || !mainboardKey || !window.cpuData || !window.cpuData[cpuKey] || !window.mainboardData || !window.mainboardData[mainboardKey]) {
-                socketMessage.style.display = 'none';
-                return;
-            }
-
-            const cpu = window.cpuData[cpuKey];
-            const mainboard = window.mainboardData[mainboardKey];
-            
-            // Lấy thông tin socket từ dữ liệu thực tế
-            const cpuSocket = cpu.socket;
-            const mbSockets = mainboard.sockets || [mainboard.socket]; // Hỗ trợ cả trường hợp sockets là mảng và socket là string
-            
-            console.log(`Checking compatibility: CPU socket = ${cpuSocket}, Mainboard sockets = ${JSON.stringify(mbSockets)}`);
-            
-            // Kiểm tra xem socket CPU có được hỗ trợ bởi mainboard không
-            const isCompatible = Array.isArray(mbSockets) 
-                ? mbSockets.includes(cpuSocket)
-                : mbSockets === cpuSocket;
-            
-            if (!isCompatible) {
-                socketMessage.innerHTML = `<strong>Cảnh báo:</strong> CPU (${cpuSocket}) không tương thích với mainboard (${Array.isArray(mbSockets) ? mbSockets.join(', ') : mbSockets}). Vui lòng chọn lại.`;
-                socketMessage.style.display = 'block';
-                socketMessage.style.color = '#e74c3c';
-                socketMessage.style.backgroundColor = '#fadbd8';
-                socketMessage.style.padding = '10px';
-                socketMessage.style.borderRadius = '5px';
-                socketMessage.style.margin = '10px 0';
-                
-                // Hiển thị cảnh báo và log cho debug
-                console.warn(`Socket incompatibility detected: CPU ${cpuKey} (${cpuSocket}) is not compatible with mainboard ${mainboardKey} (${Array.isArray(mbSockets) ? mbSockets.join(', ') : mbSockets})`);
-                
-                // Highlight các dropdown có vấn đề
-                const cpuDropdown = document.getElementById('cpu');
-                const mainboardDropdown = document.getElementById('mainboard');
-                
-                if (cpuDropdown) cpuDropdown.style.borderColor = '#e74c3c';
-                if (mainboardDropdown) mainboardDropdown.style.borderColor = '#e74c3c';
-            } else {
-                socketMessage.style.display = 'none';
-                
-                // Remove highlight nếu có
-                const cpuDropdown = document.getElementById('cpu');
-                const mainboardDropdown = document.getElementById('mainboard');
-                
-                if (cpuDropdown) cpuDropdown.style.borderColor = '';
-                if (mainboardDropdown) mainboardDropdown.style.borderColor = '';
-            }
-        } catch (error) {
-            console.error('Error checking socket compatibility:', error);
+// Đảm bảo chỉ có một bản của hàm kiểm tra tương thích socket
+window.checkSocketCompatibility = function(cpuKey, mainboardKey) {
+    const socketMessage = document.getElementById('socket-message');
+    if (!socketMessage) return;
+    
+    try {
+        if (!cpuKey || !mainboardKey || !window.cpuData || !window.cpuData[cpuKey] || !window.mainboardData || !window.mainboardData[mainboardKey]) {
             socketMessage.style.display = 'none';
+            return;
         }
-    };
-}
+
+        const cpu = window.cpuData[cpuKey];
+        const mainboard = window.mainboardData[mainboardKey];
+        
+        // Lấy thông tin socket từ dữ liệu thực tế
+        const cpuSocket = cpu.socket;
+        const mbSockets = mainboard.sockets || [mainboard.socket]; // Hỗ trợ cả trường hợp sockets là mảng và socket là string
+        
+        console.log(`Checking compatibility: CPU socket = ${cpuSocket}, Mainboard sockets = ${JSON.stringify(mbSockets)}`);
+        
+        // Kiểm tra xem socket CPU có được hỗ trợ bởi mainboard không
+        const isCompatible = Array.isArray(mbSockets) 
+            ? mbSockets.includes(cpuSocket)
+            : mbSockets === cpuSocket;
+        
+        if (!isCompatible) {
+            socketMessage.innerHTML = `<strong>Cảnh báo:</strong> CPU (${cpuSocket}) không tương thích với mainboard (${Array.isArray(mbSockets) ? mbSockets.join(', ') : mbSockets}). Vui lòng chọn lại.`;
+            socketMessage.style.display = 'block';
+            socketMessage.style.color = '#e74c3c';
+            socketMessage.style.backgroundColor = '#fadbd8';
+            socketMessage.style.padding = '10px';
+            socketMessage.style.borderRadius = '5px';
+            socketMessage.style.margin = '10px 0';
+            
+            // Hiển thị cảnh báo và log cho debug
+            console.warn(`Socket incompatibility detected: CPU ${cpuKey} (${cpuSocket}) is not compatible with mainboard ${mainboardKey} (${Array.isArray(mbSockets) ? mbSockets.join(', ') : mbSockets})`);
+            
+            // Highlight các dropdown có vấn đề
+            const cpuDropdown = document.getElementById('cpu');
+            const mainboardDropdown = document.getElementById('mainboard');
+            
+            if (cpuDropdown) cpuDropdown.style.borderColor = '#e74c3c';
+            if (mainboardDropdown) mainboardDropdown.style.borderColor = '#e74c3c';
+        } else {
+            socketMessage.style.display = 'none';
+            
+            // Remove highlight nếu có
+            const cpuDropdown = document.getElementById('cpu');
+            const mainboardDropdown = document.getElementById('mainboard');
+            
+            if (cpuDropdown) cpuDropdown.style.borderColor = '';
+            if (mainboardDropdown) mainboardDropdown.style.borderColor = '';
+        }
+    } catch (error) {
+        console.error('Error checking socket compatibility:', error);
+        socketMessage.style.display = 'none';
+    }
+};
 
 // Add a direct trigger to always show the configuration table after any component change
 document.addEventListener('DOMContentLoaded', function() {
@@ -4049,7 +4062,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
                         
 // Enhanced version of checkSocketCompatibility to ensure RAM works with mainboard
-function checkSocketCompatibility(cpuKey, mainboardKey) {
+// Sử dụng wrapper function thay vì khai báo lại
+window.enhancedCheckSocketCompatibility = function(cpuKey, mainboardKey) {
     const socketMessage = document.getElementById('socket-message');
     if (!socketMessage) return false;
     
@@ -4108,7 +4122,7 @@ function checkSocketCompatibility(cpuKey, mainboardKey) {
         socketMessage.style.display = 'none';
         return false;
     }
-}
+};
 
 // Force show component table when user has selected components
 function forceShowComponentTable() {
@@ -4169,6 +4183,41 @@ window.addEventListener('load', function() {
         const mainboardValue = document.getElementById('mainboard')?.value;
         const ramValue = document.getElementById('ram')?.value;
         
+        // Biến để kiểm tra tất cả các thành phần đều tương thích
+        let allComponentsValid = true;
+        
+        // Tạo thông báo lỗi
+        function createErrorMessage(message) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'compatibility-error';
+            msgDiv.innerHTML = `<strong>Lỗi tương thích:</strong> ${message}`;
+            msgDiv.style.color = '#e74c3c';
+            msgDiv.style.backgroundColor = '#fadbd8';
+            msgDiv.style.padding = '10px';
+            msgDiv.style.borderRadius = '5px';
+            msgDiv.style.margin = '10px 0';
+            msgDiv.style.fontWeight = 'bold';
+            msgDiv.style.borderLeft = '5px solid #e74c3c';
+            return msgDiv;
+        }
+        
+        // Hiển thị thông báo lỗi
+        function showErrorMessage(message) {
+            const container = document.querySelector('.components-grid');
+            if (container) {
+                // Xóa thông báo cũ nếu có
+                const oldMessages = container.querySelectorAll('.compatibility-error');
+                oldMessages.forEach(m => m.remove());
+                
+                // Thêm thông báo mới
+                const msgDiv = createErrorMessage(message);
+                container.prepend(msgDiv);
+                setTimeout(() => {
+                    msgDiv.remove();
+                }, 7000);
+            }
+        }
+        
         if (cpuValue && mainboardValue) {
             const cpu = window.cpuData[cpuValue];
             const mainboard = window.mainboardData[mainboardValue];
@@ -4177,73 +4226,58 @@ window.addEventListener('load', function() {
             const isCpuMbCompatible = determineCpuMainboardCompatibility(cpu, mainboard);
             
             if (!isCpuMbCompatible) {
-                // Tạo thông báo lỗi
-                const message = document.createElement('div');
-                message.className = 'compatibility-error';
-                message.innerHTML = `<strong>Lỗi tương thích:</strong> CPU ${cpu.name} không tương thích với Mainboard ${mainboard.name}`;
-                message.style.color = '#e74c3c';
-                message.style.backgroundColor = '#fadbd8';
-                message.style.padding = '10px';
-                message.style.borderRadius = '5px';
-                message.style.margin = '10px 0';
-                message.style.fontWeight = 'bold';
-                message.style.borderLeft = '5px solid #e74c3c';
+                // Lấy tên socket để hiển thị
+                const cpuSocket = cpu.socket || getCPUSocketFromName(cpu.name) || 'Unknown';
+                const mbSocket = mainboard.socket || getMainboardSocketFromName(mainboard.name) || 'Unknown';
                 
-                // Hiển thị thông báo và tự động xóa sau 7 giây
-                const container = document.querySelector('.components-grid');
-                if (container) {
-                    // Xóa thông báo cũ nếu có
-                    const oldMessages = container.querySelectorAll('.compatibility-error');
-                    oldMessages.forEach(m => m.remove());
-                    
-                    // Thêm thông báo mới
-                    container.prepend(message);
-                    setTimeout(() => {
-                        message.remove();
-                    }, 7000);
-                }
+                showErrorMessage(`CPU ${cpu.name} (Socket ${cpuSocket}) không tương thích với Mainboard ${mainboard.name} (Socket ${mbSocket})`);
                 
-                return false;
+                // Highlight dropdown lỗi
+                const cpuDropdown = document.getElementById('cpu');
+                const mainboardDropdown = document.getElementById('mainboard');
+                if (cpuDropdown) cpuDropdown.style.borderColor = '#e74c3c';
+                if (mainboardDropdown) mainboardDropdown.style.borderColor = '#e74c3c';
+                
+                allComponentsValid = false;
             }
             
             // Kiểm tra tương thích RAM-Mainboard nếu đã chọn RAM
-            if (ramValue) {
+            if (ramValue && allComponentsValid) {
                 const ram = window.ramData[ramValue];
+                
+                // Đảm bảo ram có dữ liệu đầy đủ
+                if (!ram.type) {
+                    if (ram.name.includes('DDR5')) ram.type = 'DDR5';
+                    else if (ram.name.includes('DDR4')) ram.type = 'DDR4';
+                    else if (ram.name.includes('DDR3')) ram.type = 'DDR3';
+                    else if (ram.name.includes('Bus 6000') || ram.name.includes('Bus 5200')) ram.type = 'DDR5';
+                    else if (ram.name.includes('Bus 3200')) ram.type = 'DDR4';
+                    else if (ram.name.includes('1600MHz')) ram.type = 'DDR3';
+                }
+                
                 const isRamCompatible = determineRamCompatibility(ram, mainboard);
                 
                 if (!isRamCompatible) {
-                    // Tạo thông báo lỗi
-                    const message = document.createElement('div');
-                    message.className = 'compatibility-error';
-                    message.innerHTML = `<strong>Lỗi tương thích:</strong> RAM ${ram.name} (${ram.type}) không tương thích với Mainboard ${mainboard.name}`;
-                    message.style.color = '#e74c3c';
-                    message.style.backgroundColor = '#fadbd8';
-                    message.style.padding = '10px';
-                    message.style.borderRadius = '5px';
-                    message.style.margin = '10px 0';
-                    message.style.fontWeight = 'bold';
-                    message.style.borderLeft = '5px solid #e74c3c';
+                    showErrorMessage(`RAM ${ram.name} (${ram.type || 'Unknown Type'}) không tương thích với Mainboard ${mainboard.name} (${mainboard.memoryType || 'Unknown Type'})`);
                     
-                    // Hiển thị thông báo và tự động xóa sau 7 giây
-                    const container = document.querySelector('.components-grid');
-                    if (container) {
-                        // Xóa thông báo cũ nếu có
-                        const oldMessages = container.querySelectorAll('.compatibility-error');
-                        oldMessages.forEach(m => m.remove());
-                        
-                        // Thêm thông báo mới
-                        container.prepend(message);
-                        setTimeout(() => {
-                            message.remove();
-                        }, 7000);
-                    }
+                    // Highlight dropdown lỗi
+                    const ramDropdown = document.getElementById('ram');
+                    if (ramDropdown) ramDropdown.style.borderColor = '#e74c3c';
                     
-                    return false;
+                    allComponentsValid = false;
                 }
             }
         }
         
-        return true;
+        // Chỉ cho phép hiển thị bảng cấu hình nếu tất cả thành phần tương thích
+        const configButton = document.getElementById('show-config-button');
+        if (configButton) {
+            configButton.disabled = !allComponentsValid;
+            configButton.style.opacity = allComponentsValid ? '1' : '0.5';
+            configButton.title = allComponentsValid ? 'Hiển thị bảng cấu hình' : 'Vui lòng chọn các linh kiện tương thích';
+        }
+        
+        return allComponentsValid;
     }
     
     dropdowns.forEach(function(id) {
