@@ -357,27 +357,45 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Add a delay and then ensure the configuration table is shown
                     setTimeout(() => {
-                        const calculateButton = document.getElementById('calculate-button');
-                        if (calculateButton) {
-                            console.log('Triggering calculate button to show configuration table after game selection');
-                            calculateButton.click();
-                        } else if (typeof window.showConfigDetailModal === 'function') {
-                            // Alternative method
-                            window.showConfigDetailModal();
-                        }
-                        
                         // Hiển thị bảng cấu hình
                         const configTable = document.getElementById('config-table');
                         if (configTable) {
                             configTable.style.display = 'block';
+                            
                             // Cập nhật hình ảnh và thông tin
                             if (typeof window.updateConfigTableImages === 'function') {
-                                window.updateConfigTableImages();
+                                try {
+                                    window.updateConfigTableImages();
+                                } catch (error) {
+                                    console.error('Error updating table images:', error);
+                                }
                             }
+                            
                             // Cuộn đến bảng
                             configTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
-                    }, 800); // Slightly longer delay to ensure configurations are loaded
+                        
+                        // Hiển thị modal chi tiết cấu hình nếu cần
+                        if (typeof window.showConfigDetailModal === 'function') {
+                            try {
+                                window.showConfigDetailModal();
+                            } catch (error) {
+                                console.error('Error showing config detail modal:', error);
+                                
+                                // Nếu có lỗi khi hiển thị modal, thử nhấn nút calculate
+                                const calculateButton = document.getElementById('calculate-button');
+                                if (calculateButton) {
+                                    calculateButton.click();
+                                }
+                            }
+                        } else if (configTable && configTable.style.display !== 'block') {
+                            // Nếu không có hàm showConfigDetailModal nhưng bảng chưa hiển thị, nhấn nút calculate
+                            const calculateButton = document.getElementById('calculate-button');
+                            if (calculateButton) {
+                                calculateButton.click();
+                            }
+                        }
+                    }, 1000); // Tăng delay để đảm bảo cấu hình đã được tải đầy đủ
                 }
             }
         });

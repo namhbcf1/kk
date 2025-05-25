@@ -1080,162 +1080,157 @@
             </div>
             
             <!-- Bảng chi tiết cấu hình -->
-            <div id="config-table" class="config-table" style="display:none;">
-                <table>
+            <div id="config-table" class="config-table" style="display:none; margin: 20px auto; max-width: 90%; overflow-x: auto; background-color: white; box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 8px;">
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                     <thead>
-                        <tr>
-                            <th>STT</th>
-                            <th>HÌNH ẢNH</th>
-                            <th>TÊN, MÃ, LOẠI LINH KIỆN</th>
-                            <th>ĐVT</th>
-                            <th>SỐ LƯỢNG</th>
-                            <th>ĐƠN GIÁ</th>
-                            <th>THÀNH TIỀN</th>
-                            <th>BẢO HÀNH</th>
-                            <th>GHI CHÚ</th>
+                        <tr style="background-color: #2196F3; color: white;">
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">STT</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">HÌNH ẢNH</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">TÊN, MÃ, LOẠI LINH KIỆN</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">ĐVT</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">SỐ LƯỢNG</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">ĐƠN GIÁ</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">THÀNH TIỀN</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">BẢO HÀNH</th>
+                            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">GHI CHÚ</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td id="cpu-image"></td>
-                            <td id="cpu-name"></td>
-                            <td>Chiếc</td>
-                            <td>1</td>
-                            <td id="cpu-price"></td>
-                            <td id="cpu-total"></td>
-                            <td>36T</td>
-                            <td>NEW</td>
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="cpu-image" style="padding: 10px; text-align: center; border: 1px solid #ddd;"></td>
+                            <td id="cpu-name" style="padding: 10px; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Chiếc</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="cpu-price" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td id="cpu-total" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">36T</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">NEW</td>
                         </tr>
                         <tr>
-                            <td>2</td>
-                            <td id="mainboard-image"></td>
-                            <td id="mainboard-name"></td>
-                            <td>Chiếc</td>
-                            <td>1</td>
-                            <td id="mainboard-price"></td>
-                            <td id="mainboard-total"></td>
-                            <td>36T</td>
-                            <td>NEW</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">2</td>
+                            <td id="mainboard-image" style="padding: 10px; text-align: center; border: 1px solid #ddd;"></td>
+                            <td id="mainboard-name" style="padding: 10px; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Chiếc</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="mainboard-price" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td id="mainboard-total" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">36T</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">NEW</td>
                         </tr>
                         <tr>
-                            <td>3</td>
-                            <td id="ram-image"></td>
-                            <td id="ram-name"></td>
-                            <td>Chiếc</td>
-                            <td>1</td>
-                            <td id="ram-price"></td>
-                            <td id="ram-total"></td>
-                            <td>36T</td>
-                            <td>NEW</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">3</td>
+                            <td id="ram-image" style="padding: 10px; text-align: center; border: 1px solid #ddd;"></td>
+                            <td id="ram-name" style="padding: 10px; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Chiếc</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="ram-price" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td id="ram-total" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">36T</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">NEW</td>
                         </tr>
                         <tr>
-                            <td>4</td>
-                            <td id="vga-image"></td>
-                            <td id="vga-name"></td>
-                            <td>Chiếc</td>
-                            <td>1</td>
-                            <td id="vga-price"></td>
-                            <td id="vga-total"></td>
-                            <td>3T</td>
-                            <td>NEW</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">4</td>
+                            <td id="vga-image" style="padding: 10px; text-align: center; border: 1px solid #ddd;"></td>
+                            <td id="vga-name" style="padding: 10px; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Chiếc</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="vga-price" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td id="vga-total" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">3T</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">NEW</td>
                         </tr>
                         <tr>
-                            <td>5</td>
-                            <td id="ssd-image"></td>
-                            <td id="ssd-name"></td>
-                            <td>Chiếc</td>
-                            <td>1</td>
-                            <td id="ssd-price"></td>
-                            <td id="ssd-total"></td>
-                            <td>36T</td>
-                            <td>NEW</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">5</td>
+                            <td id="ssd-image" style="padding: 10px; text-align: center; border: 1px solid #ddd;"></td>
+                            <td id="ssd-name" style="padding: 10px; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Chiếc</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="ssd-price" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td id="ssd-total" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">36T</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">NEW</td>
                         </tr>
                         <tr>
-                            <td>6</td>
-                            <td id="cpu-cooler-image"></td>
-                            <td id="cpu-cooler-name"></td>
-                            <td>Chiếc</td>
-                            <td>1</td>
-                            <td id="cpu-cooler-price"></td>
-                            <td id="cpu-cooler-total"></td>
-                            <td>12T</td>
-                            <td>NEW</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">6</td>
+                            <td id="cpu-cooler-image" style="padding: 10px; text-align: center; border: 1px solid #ddd;"></td>
+                            <td id="cpu-cooler-name" style="padding: 10px; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Chiếc</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="cpu-cooler-price" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td id="cpu-cooler-total" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">12T</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">NEW</td>
                         </tr>
                         <tr>
-                            <td>7</td>
-                            <td id="psu-image"></td>
-                            <td id="psu-name"></td>
-                            <td>Chiếc</td>
-                            <td>1</td>
-                            <td id="psu-price"></td>
-                            <td id="psu-total"></td>
-                            <td>36T</td>
-                            <td>NEW</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">7</td>
+                            <td id="psu-image" style="padding: 10px; text-align: center; border: 1px solid #ddd;"></td>
+                            <td id="psu-name" style="padding: 10px; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Chiếc</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="psu-price" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td id="psu-total" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">36T</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">NEW</td>
                         </tr>
                         <tr>
-                            <td>8</td>
-                            <td id="case-image"></td>
-                            <td id="case-name"></td>
-                            <td>Chiếc</td>
-                            <td>1</td>
-                            <td id="case-price"></td>
-                            <td id="case-total"></td>
-                            <td>12T</td>
-                            <td>NEW</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">8</td>
+                            <td id="case-image" style="padding: 10px; text-align: center; border: 1px solid #ddd;"></td>
+                            <td id="case-name" style="padding: 10px; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Chiếc</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="case-price" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td id="case-total" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">12T</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">NEW</td>
                         </tr>
                         <tr>
-                            <td>9</td>
-                            <td id="hdd-image"></td>
-                            <td id="additional-component-name"></td>
-                            <td>Chiếc</td>
-                            <td>1</td>
-                            <td id="additional-component-price"></td>
-                            <td id="additional-component-total"></td>
-                            <td>12T</td>
-                            <td>1</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">9</td>
+                            <td id="hdd-image" style="padding: 10px; text-align: center; border: 1px solid #ddd;"></td>
+                            <td id="additional-component-name" style="padding: 10px; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Chiếc</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="additional-component-price" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td id="additional-component-total" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">12T</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
                         </tr>
                         <tr>
-                            <td>10</td>
-                            <td id="monitor-image"></td>
-                            <td id="monitor-name"></td>
-                            <td>Chiếc</td>
-                            <td>1</td>
-                            <td id="monitor-price"></td>
-                            <td id="monitor-total"></td>
-                            <td>36T</td>
-                            <td>NEW</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">10</td>
+                            <td id="monitor-image" style="padding: 10px; text-align: center; border: 1px solid #ddd;"></td>
+                            <td id="monitor-name" style="padding: 10px; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">Chiếc</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">1</td>
+                            <td id="monitor-price" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td id="monitor-total" style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">36T</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">NEW</td>
                         </tr>
                         <tr>
-                            <td colspan="6"></td>
-                            <td>-</td>
-                            <td colspan="2"></td>
-                        </tr>
-                        <tr class="total-row">
-                            <td colspan="6" style="text-align: right;"><strong>Tổng cộng</strong></td>
-                            <td id="total-price-cell">0</td>
-                            <td colspan="2"></td>
+                            <td colspan="6" style="text-align: right; padding: 10px; border: 1px solid #ddd;"><strong>Tổng cộng</strong></td>
+                            <td id="total-price-cell" style="padding: 10px; text-align: right; font-weight: bold; color: #f44336; border: 1px solid #ddd;">0</td>
+                            <td colspan="2" style="border: 1px solid #ddd;"></td>
                         </tr>
                         <tr>
-                            <td colspan="6" style="text-align: right;"><strong>Chiết khấu</strong></td>
-                            <td></td>
-                            <td colspan="2"></td>
+                            <td colspan="6" style="text-align: right; padding: 10px; border: 1px solid #ddd;"><strong>Chiết khấu</strong></td>
+                            <td style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td colspan="2" style="border: 1px solid #ddd;"></td>
                         </tr>
                         <tr>
-                            <td colspan="6" style="text-align: right;"><strong>Đã thanh toán</strong></td>
-                            <td></td>
-                            <td colspan="2"></td>
+                            <td colspan="6" style="text-align: right; padding: 10px; border: 1px solid #ddd;"><strong>Đã thanh toán</strong></td>
+                            <td style="padding: 10px; text-align: right; border: 1px solid #ddd;"></td>
+                            <td colspan="2" style="border: 1px solid #ddd;"></td>
                         </tr>
                         <tr>
-                            <td colspan="6" style="text-align: right;"><strong>Còn lại</strong></td>
-                            <td id="remaining-price-cell">0</td>
-                            <td colspan="2"></td>
+                            <td colspan="6" style="text-align: right; padding: 10px; border: 1px solid #ddd;"><strong>Còn lại</strong></td>
+                            <td id="remaining-price-cell" style="padding: 10px; text-align: right; font-weight: bold; color: #f44336; border: 1px solid #ddd;">0</td>
+                            <td colspan="2" style="border: 1px solid #ddd;"></td>
                         </tr>
                     </tbody>
                 </table>
-                <div id="socket-message" class="system-message"></div>
-                <div id="score-message" class="system-message"></div>
-                <div id="upgrade-message" class="system-message"></div>
+                <div id="socket-message" class="system-message" style="margin: 15px; padding: 10px; background-color: #e7f3fe; border: 1px solid #b6dcfe; color: #0c5460; border-radius: 5px;"></div>
+                <div id="score-message" class="system-message" style="margin: 15px; padding: 10px; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; border-radius: 5px;"></div>
+                <div id="upgrade-message" class="system-message" style="margin: 15px; padding: 10px; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; border-radius: 5px;"></div>
             </div>
         </div>
     </div>

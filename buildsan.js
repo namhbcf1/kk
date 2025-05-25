@@ -2497,9 +2497,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const configTable = document.getElementById('config-table');
         if (configTable) {
             configTable.style.display = 'block';
+            // Cuộn trang đến bảng cấu hình
+            configTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
             // Cập nhật hình ảnh và thông tin trong bảng nếu có hàm updateConfigTableImages
             if (typeof window.updateConfigTableImages === 'function') {
-                window.updateConfigTableImages();
+                try {
+                    window.updateConfigTableImages();
+                } catch (error) {
+                    console.error('Error updating table images:', error);
+                }
             }
         }
         

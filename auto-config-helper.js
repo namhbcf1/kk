@@ -337,14 +337,20 @@ function autoSelectConfigEnhanced(gameId, budget, cpuType) {
     // Cập nhật giá và tổng tiền sau khi tất cả các dropdown được cập nhật
     setTimeout(function() {
         try {
+            // Kiểm tra tương thích giữa các linh kiện
+            ensureCompatibleComponents();
+
+            // Cập nhật giá
             updateComponentPricesFixed();
             console.log('Price table updated after auto-selection');
             
             // Hiển thị bảng cấu hình sau khi chọn tất cả linh kiện
             const configTable = document.getElementById('config-table');
             if (configTable) {
+                // Hiển thị bảng
                 configTable.style.display = 'block';
-                // Cập nhật hình ảnh và thông tin trong bảng nếu có hàm updateConfigTableImages
+                
+                // Cập nhật hình ảnh và thông tin trong bảng
                 if (typeof window.updateConfigTableImages === 'function') {
                     try {
                         window.updateConfigTableImages();
@@ -353,73 +359,220 @@ function autoSelectConfigEnhanced(gameId, budget, cpuType) {
                         console.error('Error updating configuration table images:', error);
                     }
                 }
+                
+                // Cuộn trang đến bảng cấu hình
+                configTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             
-            // Nếu có hàm showConfigDetailModal, gọi nó để hiển thị modal
+            // Hiển thị modal chi tiết nếu có
             if (typeof window.showConfigDetailModal === 'function') {
                 console.log('Showing configuration detail modal');
                 window.showConfigDetailModal();
             }
         } catch (error) {
-            console.error('Error updating prices after auto-selection:', error);
+            console.error('Error updating configuration after auto-selection:', error);
         }
-    }, 500);
+    }, 1000); // Tăng delay để đảm bảo đủ thời gian tải dữ liệu
     
     // Kiểm tra tương thích socket giữa CPU và Mainboard
     function ensureCompatibleComponents() {
         const cpuSelect = document.getElementById('cpu');
         const mainboardSelect = document.getElementById('mainboard');
+        const ramSelect = document.getElementById('ram');
         
-        if (!cpuSelect || !mainboardSelect || !cpuSelect.value || !mainboardSelect.value) {
+        if (!cpuSelect || !mainboardSelect) {
             return; // Không đủ thông tin để kiểm tra
         }
         
         // Lấy thông tin CPU
-        const cpuData = getComponentData ? getComponentData('CPU', cpuSelect.value) : null;
+        const cpuData = window.getComponentData ? window.getComponentData('CPU', cpuSelect.value) : null;
         // Lấy thông tin Mainboard
-        const mainboardData = getComponentData ? getComponentData('Mainboard', mainboardSelect.value) : null;
+        const mainboardData = window.getComponentData ? window.getComponentData('Mainboard', mainboardSelect.value) : null;
+        // Lấy thông tin RAM
+        const ramData = window.getComponentData ? window.getComponentData('RAM', ramSelect.value) : null;
         
-        if (!cpuData || !mainboardData) {
+        if (!cpuData) {
             return; // Không đủ dữ liệu để kiểm tra
         }
         
         // Kiểm tra socket tương thích
-        const cpuSocket = cpuData.socket || '';
-        const mainboardSocket = mainboardData.socket || '';
+        let cpuSocket = cpuData.socket || '';
+        if (!cpuSocket) {
+            // Xác định socket dựa vào tên CPU
+            const cpuName = cpuData.name.toLowerCase();
+            if (cpuName.includes('ryzen') || cpuName.includes('amd')) {
+                if (cpuName.includes('5600x') || cpuName.includes('5700x') || cpuName.includes('5800x') || cpuName.includes('5900x') || cpuName.includes('5950x')) {
+                    cpuSocket = 'AM4';
+                } else if (cpuName.includes('7600x') || cpuName.includes('7700x') || cpuName.includes('7900x') || cpuName.includes('7950x') || cpuName.includes('7800x3d')) {
+                    cpuSocket = 'AM5';
+                } else if (cpuName.includes('3600') || cpuName.includes('3700x') || cpuName.includes('3800x')) {
+                    cpuSocket = 'AM4';
+                } else {
+                    cpuSocket = 'AM4'; // Mặc định cho AMD Ryzen
+                }
+            } else if (cpuName.includes('intel') || cpuName.includes('core i')) {
+                if (cpuName.includes('12') || cpuName.includes('13') || cpuName.includes('14')) {
+                    cpuSocket = 'LGA1700';
+                } else if (cpuName.includes('10') || cpuName.includes('11')) {
+                    cpuSocket = 'LGA1200';
+                } else if (cpuName.includes('8') || cpuName.includes('9')) {
+                    cpuSocket = 'LGA1151';
+                } else if (cpuName.includes('6') || cpuName.includes('7')) {
+                    cpuSocket = 'LGA1151';
+                } else {
+                    cpuSocket = 'LGA1700'; // Mặc định cho Intel mới
+                }
+            }
+        }
         
-        if (cpuSocket && mainboardSocket && cpuSocket !== mainboardSocket) {
-            console.warn(`Socket không tương thích: CPU (${cpuSocket}) và Mainboard (${mainboardSocket})`);
+        // Hiển thị thông báo socket CPU
+        const socketMessage = document.getElementById('socket-message');
+        if (socketMessage) {
+            socketMessage.textContent = `CPU Socket: ${cpuSocket}`;
+            socketMessage.style.display = 'block';
+        }
+        
+        // Kiểm tra tương thích mainboard
+        if (mainboardData) {
+            let mainboardSocket = mainboardData.socket || '';
+            if (!mainboardSocket) {
+                // Xác định socket dựa vào tên mainboard
+                const mainboardName = mainboardData.name.toLowerCase();
+                if (mainboardName.includes('b450') || mainboardName.includes('b550') || mainboardName.includes('x570')) {
+                    mainboardSocket = 'AM4';
+                } else if (mainboardName.includes('b650') || mainboardName.includes('x670')) {
+                    mainboardSocket = 'AM5';
+                } else if (mainboardName.includes('b660') || mainboardName.includes('z690') || mainboardName.includes('z790')) {
+                    mainboardSocket = 'LGA1700';
+                } else if (mainboardName.includes('b460') || mainboardName.includes('b560') || mainboardName.includes('z490') || mainboardName.includes('z590')) {
+                    mainboardSocket = 'LGA1200';
+                } else if (mainboardName.includes('h310') || mainboardName.includes('b360') || mainboardName.includes('b365') || mainboardName.includes('z370') || mainboardName.includes('z390')) {
+                    mainboardSocket = 'LGA1151';
+                } else if (mainboardName.includes('h110') || mainboardName.includes('b150') || mainboardName.includes('z170') || mainboardName.includes('z270')) {
+                    mainboardSocket = 'LGA1151';
+                }
+            }
             
-            // Tìm mainboard tương thích với CPU đã chọn
-            if (cpuSocket.includes('AM4')) {
-                // Chọn mainboard AMD
-                const amdMainboards = ['GIGA-B450', 'JGINYUE-B450', 'GIGA-B550', 'asrock-b550m-se', 'gigabyte-b550m-gaming-wifi'];
-                for (const mainboardId of amdMainboards) {
-                    updateDropdownEnhanced('mainboard', mainboardId);
-                    break;
+            // Hiển thị thông báo socket mainboard
+            if (socketMessage) {
+                socketMessage.textContent += ` | Mainboard Socket: ${mainboardSocket}`;
+            }
+            
+            // Kiểm tra tương thích CPU - Mainboard
+            if (cpuSocket && mainboardSocket && cpuSocket !== mainboardSocket) {
+                console.warn(`Socket không tương thích: CPU (${cpuSocket}) và Mainboard (${mainboardSocket})`);
+                
+                // Tìm mainboard tương thích với CPU đã chọn
+                if (cpuSocket.includes('AM4')) {
+                    // Chọn mainboard AMD AM4
+                    const amdMainboards = ['GIGA-B450', 'JGINYUE-B450', 'GIGA-B550', 'asrock-b550m-se', 'gigabyte-b550m-gaming-wifi'];
+                    for (const mainboardId of amdMainboards) {
+                        updateDropdownEnhanced('mainboard', mainboardId);
+                        break;
+                    }
+                } else if (cpuSocket.includes('AM5')) {
+                    // Chọn mainboard AMD AM5
+                    const amdMainboards = ['JGINYUE-B650', 'JGINYUE-B650-PRO', 'ASROCK-B650M-HDV-M2', 'MSI-PRO-B650M-P'];
+                    for (const mainboardId of amdMainboards) {
+                        updateDropdownEnhanced('mainboard', mainboardId);
+                        break;
+                    }
+                } else if (cpuSocket.includes('LGA1151') || cpuSocket.includes('LGA1200')) {
+                    // Chọn mainboard Intel cũ
+                    const intelMainboards = ['H310', 'B360', 'B365', 'H410', 'B460'];
+                    for (const mainboardId of intelMainboards) {
+                        updateDropdownEnhanced('mainboard', mainboardId);
+                        break;
+                    }
+                } else if (cpuSocket.includes('LGA1700')) {
+                    // Chọn mainboard Intel mới
+                    const intelMainboards = ['ASUS-H610', 'MSI-H610', 'HNZ-H610', 'ASUS-B760', 'MSI-B760', 'B760M-E'];
+                    for (const mainboardId of intelMainboards) {
+                        updateDropdownEnhanced('mainboard', mainboardId);
+                        break;
+                    }
                 }
-            } else if (cpuSocket.includes('AM5')) {
-                // Chọn mainboard AMD mới
-                const amdMainboards = ['JGINYUE-B650', 'JGINYUE-B650-PRO', 'ASROCK-B650M-HDV-M2', 'MSI-PRO-B650M-P'];
-                for (const mainboardId of amdMainboards) {
-                    updateDropdownEnhanced('mainboard', mainboardId);
-                    break;
-                }
-            } else if (cpuSocket.includes('LGA1151') || cpuSocket.includes('LGA1200')) {
-                // Chọn mainboard Intel cũ
-                const intelMainboards = ['H310', 'B360', 'B365', 'H410', 'B460'];
-                for (const mainboardId of intelMainboards) {
-                    updateDropdownEnhanced('mainboard', mainboardId);
-                    break;
-                }
-            } else if (cpuSocket.includes('LGA1700')) {
-                // Chọn mainboard Intel mới
-                const intelMainboards = ['ASUS-H610', 'MSI-H610', 'HNZ-H610', 'ASUS-B760', 'MSI-B760', 'B760M-E'];
-                for (const mainboardId of intelMainboards) {
-                    updateDropdownEnhanced('mainboard', mainboardId);
+            }
+        }
+        
+        // Kiểm tra tương thích RAM
+        if (ramData && cpuSocket) {
+            let ramType = '';
+            const ramName = ramData.name.toLowerCase();
+            
+            if (ramName.includes('ddr5')) {
+                ramType = 'DDR5';
+            } else if (ramName.includes('ddr4')) {
+                ramType = 'DDR4';
+            } else if (ramName.includes('ddr3')) {
+                ramType = 'DDR3';
+            }
+            
+            // Hiển thị thông báo loại RAM
+            if (socketMessage) {
+                socketMessage.textContent += ` | RAM Type: ${ramType}`;
+            }
+            
+            // AM4 chỉ tương thích với DDR4
+            if (cpuSocket === 'AM4' && ramType === 'DDR5') {
+                console.warn('CPU AM4 không tương thích với RAM DDR5');
+                
+                // Chọn RAM DDR4 phù hợp
+                const ddr4Rams = ['cosair-16', 'cosair-32', 'fury-16', 'adata-16', 'tridentz-16'];
+                for (const ramId of ddr4Rams) {
+                    updateDropdownEnhanced('ram', ramId);
                     break;
                 }
             }
+            
+            // AM5 chỉ tương thích với DDR5
+            if (cpuSocket === 'AM5' && ramType === 'DDR4') {
+                console.warn('CPU AM5 chỉ tương thích với RAM DDR5');
+                
+                // Chọn RAM DDR5 phù hợp
+                const ddr5Rams = ['Cosair-16-5200', 'tridentz-16-6000', 'tridentz-32-6000', 'adata-32-6000'];
+                for (const ramId of ddr5Rams) {
+                    updateDropdownEnhanced('ram', ramId);
+                    break;
+                }
+            }
+            
+            // LGA1700 tương thích với cả DDR4 và DDR5 tùy mainboard
+            if (cpuSocket === 'LGA1700' && mainboardData) {
+                const mainboardName = mainboardData.name.toLowerCase();
+                // Nếu mainboard hỗ trợ DDR4 nhưng RAM là DDR5 hoặc ngược lại
+                if ((mainboardName.includes('ddr4') && ramType === 'DDR5') ||
+                    (mainboardName.includes('ddr5') && ramType === 'DDR4')) {
+                    console.warn('RAM không tương thích với mainboard');
+                    
+                    if (mainboardName.includes('ddr4')) {
+                        // Chọn RAM DDR4 phù hợp
+                        const ddr4Rams = ['cosair-16', 'cosair-32', 'fury-16', 'adata-16', 'tridentz-16'];
+                        for (const ramId of ddr4Rams) {
+                            updateDropdownEnhanced('ram', ramId);
+                            break;
+                        }
+                    } else {
+                        // Chọn RAM DDR5 phù hợp
+                        const ddr5Rams = ['Cosair-16-5200', 'tridentz-16-6000', 'tridentz-32-6000', 'adata-32-6000'];
+                        for (const ramId of ddr5Rams) {
+                            updateDropdownEnhanced('ram', ramId);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Hiển thị các thông báo phù hợp
+        if (socketMessage) {
+            socketMessage.style.backgroundColor = '#e7f3fe';
+            socketMessage.style.border = '1px solid #b6dcfe';
+            socketMessage.style.color = '#0c5460';
+            socketMessage.style.padding = '10px';
+            socketMessage.style.borderRadius = '5px';
+            socketMessage.style.marginTop = '10px';
+            socketMessage.style.marginBottom = '10px';
         }
     }
 
