@@ -3179,8 +3179,17 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
+        // Lấy tham chiếu đến modal và modalContent
+        const modal = summaryModal;
+        const modalContent = summaryModal.querySelector('.modal-content');
+        
+        if (!modalContent) {
+            console.error('Modal content element not found');
+            return;
+        }
+        
         // Đảm bảo modal hiển thị
-        summaryModal.style.display = 'block';
+        modal.style.display = 'block';
         
         // Cập nhật dữ liệu trong modal
         if (typeof calculateTotalPriceAndSummary === 'function') {
@@ -3416,10 +3425,31 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         }
         
-        // Show modal
-        modal.style.display = 'block';
+        // Setup close modal when clicking outside the content
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                window.userClosedConfigModal = true;
+                console.log('User closed config modal by clicking outside');
+            }
+        };
         
-        console.log(`Configuration table displayed with ${addedComponents} components and total price: ${totalPrice.toLocaleString()}`);
+        // Thêm phím tắt ESC để đóng modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display === 'block') {
+                modal.style.display = 'none';
+                window.userClosedConfigModal = true;
+                console.log('User closed config modal with ESC key');
+            }
+        });
+        
+        // Show modal only if user hasn't closed it or is explicitly showing it
+        if (!window.userClosedConfigModal || configData?.forceShow) {
+            modal.style.display = 'block';
+            console.log(`Configuration table displayed with ${addedComponents} components and total price: ${totalPrice.toLocaleString()}`);
+        } else {
+            console.log('Not showing modal because user previously closed it');
+        }
     }
 
     // Make sure showConfigDetailModal is available globally
@@ -3898,7 +3928,7 @@ window.checkSocketCompatibility = function(cpuKey, mainboardKey) {
     }
 };
 
-// Add a direct trigger to always show the configuration table after any component change
+// Add a direct trigger to show the configuration table after component changes, but only when appropriate
 document.addEventListener('DOMContentLoaded', function() {
     // List of all component dropdowns to monitor
     const componentDropdowns = [
@@ -3906,26 +3936,47 @@ document.addEventListener('DOMContentLoaded', function() {
         'game-genre', 'budget-range', 'cpu-type'
     ];
     
+    // Biến để kiểm soát hiển thị bảng
+    window.userClosedConfigModal = false;
+    window.hasRequiredSelections = false;
+    
+    // Hàm kiểm tra đã đủ điều kiện hiển thị bảng chưa
+    function checkRequiredSelections() {
+        const cpu = document.getElementById('cpu');
+        const mainboard = document.getElementById('mainboard');
+        const gameGenre = document.getElementById('game-genre');
+        
+        return cpu && cpu.value && cpu.value !== '' && 
+               mainboard && mainboard.value && mainboard.value !== '' &&
+               gameGenre && gameGenre.value && gameGenre.value !== '';
+    }
+    
     // Add change listeners to all dropdowns
     componentDropdowns.forEach(id => {
         const dropdown = document.getElementById(id);
         if (dropdown) {
             dropdown.addEventListener('change', function() {
-                console.log(`Component ${id} changed, scheduling table display`);
+                console.log(`Component ${id} changed, checking if should display table`);
                 
                 // Delay a bit to let other handlers run first
                 setTimeout(() => {
-                    // Make sure we have showConfigDetailModal function
-                    if (typeof window.showConfigDetailModal === 'function') {
-                        console.log(`Showing configuration table after ${id} change`);
-                        window.showConfigDetailModal();
+                    // Kiểm tra xem có đủ điều kiện để hiển thị và người dùng chưa đóng bảng
+                    window.hasRequiredSelections = checkRequiredSelections();
+                    
+                    if (window.hasRequiredSelections && !window.userClosedConfigModal) {
+                        if (typeof window.showConfigDetailModal === 'function') {
+                            console.log(`Showing configuration table after ${id} change`);
+                            window.showConfigDetailModal();
+                        }
+                    } else {
+                        console.log(`Not showing table: hasRequiredSelections=${window.hasRequiredSelections}, userClosedModal=${window.userClosedConfigModal}`);
                     }
                 }, 800);
             });
         }
     });
     
-    console.log('Added automatic table display triggers to all component dropdowns');
+    console.log('Added conditional table display triggers to all component dropdowns');
     
     // Create a button to manually show the configuration table
     const showTableButtonContainer = document.createElement('div');
@@ -3957,27 +4008,30 @@ document.addEventListener('DOMContentLoaded', function() {
     showTableButtonContainer.appendChild(showTableButton);
     document.body.appendChild(showTableButtonContainer);
     
-    // Initial table display if components are already selected
-    setTimeout(() => {
-        const cpu = document.getElementById('cpu');
-        const vga = document.getElementById('vga');
-        
-        if (cpu && vga && cpu.value && vga.value) {
-            if (typeof window.showConfigDetailModal === 'function') {
-                console.log('Initial configuration table display');
-                window.showConfigDetailModal();
-            }
-        }
-    }, 1500);
+    // Không tự động hiển thị bảng khi tải trang - phải đợi người dùng chọn
+    console.log('Auto-display of configuration table on page load is disabled - waiting for user selection');
 });
                         
-// Add code at the end to ensure the configuration table is displayed after any key selection change
+// Add code for manual display button and conditional display after selections
 document.addEventListener('DOMContentLoaded', function() {
-    // Create a function to display the configuration table
-    const showConfigTable = function() {
+    // Create a function to display the configuration table only when appropriate
+    const showConfigTable = function(forceShow = false) {
+        // Kiểm tra xem có đủ các thành phần quan trọng đã được chọn
+        function hasRequiredComponents() {
+            const cpu = document.getElementById('cpu');
+            const vga = document.getElementById('vga');
+            return cpu && cpu.value && cpu.value !== '' && 
+                   vga && vga.value && vga.value !== '';
+        }
+        
         if (typeof window.showConfigDetailModal === 'function') {
-            console.log('Auto-triggering configuration table display');
-            window.showConfigDetailModal();
+            if (forceShow || hasRequiredComponents()) {
+                console.log('Displaying configuration table' + (forceShow ? ' (forced)' : ''));
+                // Khi gọi hàm với force = true, chúng ta sẽ luôn hiển thị bảng
+                window.showConfigDetailModal({forceShow: forceShow});
+            } else {
+                console.log('Not showing configuration table - missing required components');
+            }
         }
     };
     
@@ -3990,6 +4044,7 @@ document.addEventListener('DOMContentLoaded', function() {
     showTableButtonContainer.style.zIndex = '1000';
     
     const showTableButton = document.createElement('button');
+    showTableButton.id = 'show-config-button'; // Thêm ID cho dễ tham chiếu
     showTableButton.textContent = 'Hiển thị bảng cấu hình';
     showTableButton.style.padding = '10px 20px';
     showTableButton.style.backgroundColor = '#2196F3';
@@ -4003,20 +4058,20 @@ document.addEventListener('DOMContentLoaded', function() {
     showTableButton.addEventListener('click', function() {
         // When button is clicked, it's an explicit user action to show the table
         window.userClosedConfigModal = false;
-        showConfigTable();
+        showConfigTable(true); // Force show when clicked
     });
     
     showTableButtonContainer.appendChild(showTableButton);
     document.body.appendChild(showTableButtonContainer);
     
-    // Attach listeners to important controls
+    // Attach listeners to important controls, but use more restraint in showing the table
     
     // 1. CPU Type dropdown
     const cpuTypeDropdown = document.getElementById('cpu-type');
     if (cpuTypeDropdown) {
         cpuTypeDropdown.addEventListener('change', function() {
-            console.log('CPU type changed, updating configuration table');
-            setTimeout(showConfigTable, 500); // Small delay to allow other updates
+            console.log('CPU type changed, not auto-showing table');
+            // Không tự động hiển thị khi thay đổi loại CPU
         });
     }
     
@@ -4024,8 +4079,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const gameDropdown = document.getElementById('game-genre');
     if (gameDropdown) {
         gameDropdown.addEventListener('change', function() {
-            console.log('Game selection changed, updating configuration table');
-            setTimeout(showConfigTable, 500);
+            console.log('Game selection changed');
+            // Chỉ cập nhật dữ liệu, không tự động hiển thị
         });
     }
     
@@ -4033,12 +4088,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const budgetSlider = document.getElementById('budget-slider');
     if (budgetSlider) {
         budgetSlider.addEventListener('change', function() {
-            console.log('Budget changed, updating configuration table');
-            setTimeout(showConfigTable, 500);
-        });
-        budgetSlider.addEventListener('input', function() {
-            console.log('Budget changed, updating configuration table');
-            setTimeout(showConfigTable, 500);
+            console.log('Budget changed');
+            // Chỉ cập nhật dữ liệu, không tự động hiển thị
         });
     }
     
@@ -4047,18 +4098,37 @@ document.addEventListener('DOMContentLoaded', function() {
         'cpu', 'mainboard', 'vga', 'ram', 'ssd', 'cpuCooler', 'psu', 'case', 'hdd', 'monitor'
     ];
     
+    // Theo dõi những lần thay đổi thành phần liên tiếp
+    let lastChangeTime = 0;
+    let changeCount = 0;
+    
     componentDropdowns.forEach(component => {
         const dropdown = document.getElementById(component);
         if (dropdown) {
             dropdown.addEventListener('change', function() {
-                console.log(`${component} selection changed, updating configuration table`);
-                setTimeout(showConfigTable, 500);
+                console.log(`${component} selection changed`);
+                
+                // Theo dõi thay đổi nhanh liên tiếp - chỉ hiển thị bảng sau khi người dùng đã chọn xong
+                const now = new Date().getTime();
+                if (now - lastChangeTime < 2000) {
+                    changeCount++;
+                } else {
+                    changeCount = 1;
+                }
+                lastChangeTime = now;
+                
+                // Nếu đã thay đổi 3 thành phần trở lên và đã chọn đủ CPU và VGA
+                if (changeCount >= 3) {
+                    setTimeout(() => {
+                        showConfigTable(false);
+                        changeCount = 0;
+                    }, 1000);
+                }
             });
         }
     });
     
-    // Don't automatically display on page load
-    // User should make a selection first
+    console.log('Added manual table display button and component change listeners');
 });
                         
 // Enhanced version of checkSocketCompatibility to ensure RAM works with mainboard
@@ -4637,44 +4707,80 @@ function createModalElements() {
     return summaryModal;
 }
                         
-// Thêm nút hiển thị bảng cấu hình lớn ngay khi trang tải xong
+// Thêm nút hiển thị bảng cấu hình chính ở cuối trang sau khi đã chọn các thành phần
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
-        // Kiểm tra xem nút đã tồn tại chưa
-        if (!document.getElementById('show-config-modal-button')) {
+        // Kiểm tra xem nút đã tồn tại chưa và tránh tạo trùng lặp
+        if (!document.getElementById('show-config-modal-button') && !document.getElementById('show-config-button')) {
+            // Tạo container cho nút
+            const configButtonContainer = document.createElement('div');
+            configButtonContainer.style.textAlign = 'center';
+            configButtonContainer.style.margin = '30px 0';
+            configButtonContainer.style.padding = '20px';
+            
             // Tạo nút hiển thị bảng cấu hình
             const showModalButton = document.createElement('button');
             showModalButton.id = 'show-config-modal-button';
-            showModalButton.innerText = 'HIỂN THỊ BẢNG CẤU HÌNH CHI TIẾT';
-            showModalButton.style.position = 'fixed';
-            showModalButton.style.bottom = '30px';
-            showModalButton.style.left = '50%';
-            showModalButton.style.transform = 'translateX(-50%)';
+            showModalButton.innerText = 'XEM BẢNG CẤU HÌNH CHI TIẾT';
             showModalButton.style.padding = '15px 30px';
             showModalButton.style.fontSize = '18px';
             showModalButton.style.fontWeight = 'bold';
-            showModalButton.style.backgroundColor = '#4CAF50';
+            showModalButton.style.backgroundColor = '#e91e63';
             showModalButton.style.color = 'white';
             showModalButton.style.border = 'none';
             showModalButton.style.borderRadius = '5px';
             showModalButton.style.cursor = 'pointer';
-            showModalButton.style.zIndex = '1000';
             showModalButton.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+            showModalButton.style.transition = 'all 0.3s ease';
+            
+            // Mặc định nút bị vô hiệu hóa cho đến khi chọn đủ thành phần
+            showModalButton.disabled = true;
+            showModalButton.style.opacity = '0.5';
+            showModalButton.style.cursor = 'not-allowed';
+            
+            // Hàm kiểm tra đủ thành phần chính
+            function checkRequiredComponents() {
+                const cpu = document.getElementById('cpu');
+                const mainboard = document.getElementById('mainboard');
+                const vga = document.getElementById('vga');
+                return cpu && cpu.value && mainboard && mainboard.value && vga && vga.value;
+            }
             
             // Thêm sự kiện click
             showModalButton.addEventListener('click', function() {
+                if (this.disabled) return;
+                
                 // Gọi hàm hiển thị bảng cấu hình
                 if (typeof window.showConfigDetailModal === 'function') {
                     window.userClosedConfigModal = false; // Reset trạng thái đóng
-                    window.showConfigDetailModal();
+                    window.showConfigDetailModal({forceShow: true});
                 }
             });
             
-            // Thêm nút vào body
-            document.body.appendChild(showModalButton);
+            // Thêm nút vào container và container vào cuối trang
+            configButtonContainer.appendChild(showModalButton);
             
-            console.log('Added show config modal button');
+            // Thêm vào phần components-grid hoặc body nếu không tìm thấy
+            const componentsGrid = document.querySelector('.components-grid');
+            if (componentsGrid) {
+                componentsGrid.appendChild(configButtonContainer);
+            } else {
+                document.body.appendChild(configButtonContainer);
+            }
+            
+            console.log('Added main config table button to page');
+            
+            // Kiểm tra định kỳ để kích hoạt nút khi đã chọn đủ thành phần
+            const checkInterval = setInterval(function() {
+                if (checkRequiredComponents()) {
+                    showModalButton.disabled = false;
+                    showModalButton.style.opacity = '1';
+                    showModalButton.style.cursor = 'pointer';
+                    showModalButton.style.backgroundColor = '#4CAF50';
+                    clearInterval(checkInterval);
+                }
+            }, 1000);
         }
-    }, 500);
+    }, 1000);
 });
                         
