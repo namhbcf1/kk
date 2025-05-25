@@ -577,13 +577,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Auto-select configuration
                 autoSelectConfig(gameId, budget, cpuType);
                 
-                // Trigger table display after a short delay
-                setTimeout(() => {
-                    if (typeof showConfigDetailModal === 'function') {
-                        console.log('Showing configuration table after game change');
-                        showConfigDetailModal();
-                    }
-                }, 500);
+                // Only show table if user hasn't manually closed it
+                if (!window.userClosedConfigModal) {
+                    setTimeout(() => {
+                        if (typeof showConfigDetailModal === 'function') {
+                            console.log('Showing configuration table after game change');
+                            showConfigDetailModal();
+                        }
+                    }, 500);
+                }
             }
         });
         console.log("✅ Successfully attached event listener to game-genre dropdown");
@@ -677,13 +679,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("Auto-selecting config after CPU type change");
                 autoSelectConfig(gameId, budget, this.value);
                 
-                // Trigger table display after a short delay
-                setTimeout(() => {
-                    if (typeof showConfigDetailModal === 'function') {
-                        console.log('Showing configuration table after CPU type change');
-                        showConfigDetailModal();
-                    }
-                }, 500);
+                // Only show table if user hasn't manually closed it
+                if (!window.userClosedConfigModal) {
+                    setTimeout(() => {
+                        if (typeof showConfigDetailModal === 'function') {
+                            console.log('Showing configuration table after CPU type change');
+                            showConfigDetailModal();
+                        }
+                    }, 500);
+                }
             } else {
                 console.log("Not auto-selecting because game or budget is missing");
             }
@@ -812,6 +816,51 @@ function handleImageError(img) {
 
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Initialize userClosedConfigModal to false
+    window.userClosedConfigModal = false;
+    
+    // Add event listeners to reset the closed state when components change
+    const componentDropdowns = [
+        'cpu', 'mainboard', 'vga', 'ram', 'ssd', 'cpuCooler', 'psu', 'case', 'hdd', 'monitor'
+    ];
+    
+    componentDropdowns.forEach(id => {
+        const dropdown = document.getElementById(id);
+        if (dropdown) {
+            dropdown.addEventListener('change', function() {
+                // When a new component is selected, allow modal to show again
+                window.userClosedConfigModal = false;
+                console.log(`Component ${id} changed, resetting modal closed state`);
+            });
+        }
+    });
+    
+    // Add listeners for game, budget, and CPU type changes
+    const gameDropdown = document.getElementById('game-genre');
+    const budgetRange = document.getElementById('budget-range');
+    const cpuType = document.getElementById('cpu-type');
+    
+    if (gameDropdown) {
+        gameDropdown.addEventListener('change', function() {
+            window.userClosedConfigModal = false;
+            console.log('Game changed, resetting modal closed state');
+        });
+    }
+    
+    if (budgetRange) {
+        budgetRange.addEventListener('change', function() {
+            window.userClosedConfigModal = false;
+            console.log('Budget changed, resetting modal closed state');
+        });
+    }
+    
+    if (cpuType) {
+        cpuType.addEventListener('change', function() {
+            window.userClosedConfigModal = false;
+            console.log('CPU type changed, resetting modal closed state');
+        });
+    }
+    
     // Add global image error handler for all images in the document
     function setupImageErrorHandlers() {
         document.querySelectorAll('img').forEach(img => {
@@ -888,13 +937,15 @@ document.addEventListener('DOMContentLoaded', function () {
             // Auto-select configuration
             autoSelectConfig(gameId, budget, cpuType);
             
-            // Trigger table display after a short delay
-            setTimeout(() => {
-                if (typeof showConfigDetailModal === 'function') {
-                    console.log('Showing configuration table after budget change');
-                    showConfigDetailModal();
-                }
-            }, 500);
+            // Only show table if user hasn't manually closed it
+            if (!window.userClosedConfigModal) {
+                setTimeout(() => {
+                    if (typeof showConfigDetailModal === 'function') {
+                        console.log('Showing configuration table after budget change');
+                        showConfigDetailModal();
+                    }
+                }, 500);
+            }
         }
     });
     
@@ -2322,37 +2373,46 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log(`%c Configuration for ${finalCpuType} applied successfully`, 'color: green; font-weight: bold;');
                 
                 // CRITICAL FIX: LUÔN hiển thị bảng cấu hình chi tiết sau khi cập nhật
-                // Click vào nút calculate để hiển thị bảng
-                const calculateButton = document.getElementById('calculate-button');
-                if (calculateButton) {
-                    console.log('Triggering calculate button click to show configuration table');
-                    calculateButton.click();
-                } else {
-                    console.error('Calculate button not found, trying alternative method to show config');
-                    
-                    // Phương pháp thay thế: Gọi trực tiếp hàm showConfigDetailModal nếu có
-                    if (typeof window.showConfigDetailModal === 'function') {
-                        window.showConfigDetailModal();
+                // Chỉ hiển thị bảng nếu người dùng chưa đóng
+                if (!window.userClosedConfigModal) {
+                    // Click vào nút calculate để hiển thị bảng
+                    const calculateButton = document.getElementById('calculate-button');
+                    if (calculateButton) {
+                        console.log('Triggering calculate button click to show configuration table');
+                        calculateButton.click();
+                    } else {
+                        console.error('Calculate button not found, trying alternative method to show config');
+                        
+                        // Phương pháp thay thế: Gọi trực tiếp hàm showConfigDetailModal nếu có
+                        if (typeof window.showConfigDetailModal === 'function') {
+                            window.showConfigDetailModal();
+                        }
                     }
+                } else {
+                    console.log('Not showing table because user manually closed it');
                 }
                 
                 // REPLACED WITH:
-                // CRITICAL FIX: LUÔN hiển thị bảng cấu hình chi tiết sau khi cập nhật
-                console.log('Directly showing configuration table after auto-select');
+                // Hiển thị bảng cấu hình sau khi auto-select chỉ khi người dùng chưa đóng nó
+                console.log('Checking if we should show configuration table after auto-select');
                 
-                // Gọi trực tiếp hàm showConfigDetailModal thay vì click nút
-                setTimeout(() => {
-                    if (typeof window.showConfigDetailModal === 'function') {
-                        window.showConfigDetailModal();
-                    } else {
-                        console.error('showConfigDetailModal function not available');
-                        // Fallback to clicking the calculate button
-                        const calculateButton = document.getElementById('calculate-button');
-                        if (calculateButton) {
-                            calculateButton.click();
+                // Chỉ hiển thị nếu người dùng chưa đóng bảng
+                if (!window.userClosedConfigModal) {
+                    setTimeout(() => {
+                        if (typeof window.showConfigDetailModal === 'function') {
+                            window.showConfigDetailModal();
+                        } else {
+                            console.error('showConfigDetailModal function not available');
+                            // Fallback to clicking the calculate button
+                            const calculateButton = document.getElementById('calculate-button');
+                            if (calculateButton) {
+                                calculateButton.click();
+                            }
                         }
-                    }
-                }, 500); // Thêm một chút delay để đảm bảo các component đã được cập nhật
+                    }, 500); // Thêm một chút delay để đảm bảo các component đã được cập nhật
+                } else {
+                    console.log('Not showing table because user manually closed it');
+                }
                 
                 // Thêm thông báo rằng bảng chi tiết đã hiển thị
                 const tableNotification = document.createElement('div');
@@ -3015,6 +3075,9 @@ document.addEventListener('DOMContentLoaded', function () {
             closeBtn.onclick = function(e) {
                 e.stopPropagation();
                 modal.style.display = 'none';
+                // Track that user has manually closed the modal
+                window.userClosedConfigModal = true;
+                console.log('User closed config modal - will not reopen automatically until next component change');
                 return false;
             };
         }
@@ -3357,24 +3420,9 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(createShowTableButton, 1000);
 });
 
-// Add automatic trigger for showConfigDetailModal when components are selected
-const checkComponentsInterval = setInterval(() => {
-    const cpu = document.getElementById('cpu');
-    const mainboard = document.getElementById('mainboard');
-    const vga = document.getElementById('vga');
-    
-    // Check if main components are selected
-    if (cpu && mainboard && vga && 
-        cpu.value && cpu.value !== '' && 
-        mainboard.value && mainboard.value !== '' && 
-        vga.value && vga.value !== '') {
-        
-        console.log('Main components detected, triggering configuration table display');
-        window.showConfigDetailModal();
-        
-        // Don't clear the interval to allow for updates when components change
-    }
-}, 2000); // Check every 2 seconds
+// Remove the automatic interval check that was showing the modal every 2 seconds
+// We'll only show the modal when user explicitly takes actions
+// No automatic checking interval
                         
 // Add code at the end of the file to fix both issues
 // 1. Fix socket compatibility issue
@@ -3490,6 +3538,9 @@ document.addEventListener('DOMContentLoaded', function() {
     showTableButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
     
     showTableButton.addEventListener('click', function() {
+        // When the button is clicked, it's an explicit user action
+        // So we reset the closed state and show the table
+        window.userClosedConfigModal = false;
         if (typeof window.showConfigDetailModal === 'function') {
             window.showConfigDetailModal();
         }
@@ -3541,7 +3592,11 @@ document.addEventListener('DOMContentLoaded', function() {
     showTableButton.style.fontWeight = 'bold';
     showTableButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
     
-    showTableButton.addEventListener('click', showConfigTable);
+    showTableButton.addEventListener('click', function() {
+        // When button is clicked, it's an explicit user action to show the table
+        window.userClosedConfigModal = false;
+        showConfigTable();
+    });
     
     showTableButtonContainer.appendChild(showTableButton);
     document.body.appendChild(showTableButtonContainer);
@@ -3594,16 +3649,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Initial display if components are already selected
-    setTimeout(() => {
-        const cpu = document.getElementById('cpu');
-        const vga = document.getElementById('vga');
-        
-        if (cpu && vga && cpu.value && vga.value) {
-            console.log('Initial configuration table display');
-            showConfigTable();
-        }
-    }, 1500);
+    // Don't automatically display on page load
+    // User should make a selection first
 });
                         
 // Enhanced version of checkSocketCompatibility to ensure RAM works with mainboard
@@ -3708,7 +3755,7 @@ window.addEventListener('load', function() {
         }
     });
     
-    // Initial check for components and show table if needed
-    setTimeout(forceShowComponentTable, 500);
+    // Don't automatically show table on page load
+    // Wait for user to make selections first
 });
                         
