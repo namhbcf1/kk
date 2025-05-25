@@ -3331,13 +3331,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (cpuDropdown && mainboardDropdown) {
         cpuDropdown.addEventListener('change', function() {
             if (mainboardDropdown.value) {
-                checkSocketCompatibility(this.value, mainboardDropdown.value);
+                window.checkSocketCompatibility(this.value, mainboardDropdown.value);
             }
         });
         
         mainboardDropdown.addEventListener('change', function() {
             if (cpuDropdown.value) {
-                checkSocketCompatibility(cpuDropdown.value, this.value);
+                window.checkSocketCompatibility(cpuDropdown.value, this.value);
             }
         });
         
@@ -3756,6 +3756,107 @@ window.addEventListener('load', function() {
     });
     
     // Don't automatically show table on page load
-    // Wait for user to make selections first
+    // But add a prominent button to show the configuration table
+    const showTableBtn = document.createElement('button');
+    showTableBtn.textContent = 'XEM BẢNG CẤU HÌNH CHI TIẾT';
+    showTableBtn.style.position = 'fixed';
+    showTableBtn.style.bottom = '20px';
+    showTableBtn.style.right = '20px';
+    showTableBtn.style.padding = '15px 20px';
+    showTableBtn.style.backgroundColor = '#007bff';
+    showTableBtn.style.color = 'white';
+    showTableBtn.style.border = 'none';
+    showTableBtn.style.borderRadius = '5px';
+    showTableBtn.style.fontSize = '16px';
+    showTableBtn.style.fontWeight = 'bold';
+    showTableBtn.style.zIndex = '9999';
+    showTableBtn.style.cursor = 'pointer';
+    showTableBtn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+    
+    showTableBtn.addEventListener('click', function() {
+        if (typeof window.showConfigDetailModal === 'function') {
+            // Reset the closed state since this is an explicit user action
+            window.userClosedConfigModal = false;
+            window.showConfigDetailModal();
+        }
+    });
+    
+    document.body.appendChild(showTableBtn);
+});
+                        
+document.addEventListener('DOMContentLoaded', function() {
+    // Tạo nút hiển thị bảng cấu hình chi tiết
+    function createShowConfigButton() {
+        // Tìm vùng chứa linh kiện
+        const componentsContainer = document.querySelector('.components-grid') || document.querySelector('.component-container');
+        if (!componentsContainer) return;
+        
+        // Tạo nút
+        const showConfigButton = document.createElement('button');
+        showConfigButton.id = 'show-config-detail-button';
+        showConfigButton.className = 'action-button primary-btn';
+        showConfigButton.textContent = 'XEM BẢNG CẤU HÌNH CHI TIẾT';
+        showConfigButton.style.width = '100%';
+        showConfigButton.style.margin = '20px 0';
+        showConfigButton.style.padding = '12px';
+        showConfigButton.style.backgroundColor = '#2196F3';
+        showConfigButton.style.color = 'white';
+        showConfigButton.style.border = 'none';
+        showConfigButton.style.borderRadius = '5px';
+        showConfigButton.style.fontSize = '16px';
+        showConfigButton.style.fontWeight = 'bold';
+        showConfigButton.style.cursor = 'pointer';
+        showConfigButton.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+        
+        // Thêm sự kiện click
+        showConfigButton.addEventListener('click', function() {
+            // Kiểm tra nếu có CPU và Mainboard được chọn
+            const cpu = document.getElementById('cpu');
+            const mainboard = document.getElementById('mainboard');
+            
+            if (cpu && mainboard && cpu.value && mainboard.value) {
+                // Reset trạng thái đóng bảng vì đây là hành động rõ ràng của người dùng
+                window.userClosedConfigModal = false;
+                
+                // Hiển thị bảng cấu hình
+                if (typeof window.showConfigDetailModal === 'function') {
+                    window.showConfigDetailModal();
+                }
+            } else {
+                // Hiển thị thông báo nếu chưa chọn đủ thành phần
+                alert('Vui lòng chọn ít nhất CPU và Mainboard để xem bảng cấu hình chi tiết');
+            }
+        });
+        
+        // Chèn nút vào cuối vùng chứa linh kiện
+        componentsContainer.appendChild(showConfigButton);
+        console.log('Added show config button to components container');
+    }
+    
+    // Tạo nút khi trang đã tải xong
+    setTimeout(createShowConfigButton, 500);
+    
+    // Rest of existing code...
+});
+                        
+// Thêm sự kiện để hiển thị bảng cấu hình khi nút tính toán được nhấn
+document.addEventListener('DOMContentLoaded', function() {
+    const calculateButton = document.getElementById('calculate-button');
+    if (calculateButton) {
+        calculateButton.addEventListener('click', function() {
+            console.log('Calculate button clicked, showing configuration table');
+            
+            // Reset trạng thái đóng bảng vì đây là hành động rõ ràng của người dùng
+            window.userClosedConfigModal = false;
+            
+            // Đảm bảo rằng các thành phần đã được cập nhật trước khi hiển thị bảng
+            setTimeout(() => {
+                if (typeof window.showConfigDetailModal === 'function') {
+                    window.showConfigDetailModal();
+                }
+            }, 300);
+        });
+        console.log('Added listener to calculate button for showing config table');
+    }
 });
                         
