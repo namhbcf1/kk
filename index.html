@@ -1278,6 +1278,10 @@
     <script src="./auto-export-config.js"></script>
     <!-- Script for enhanced auto-config functionality -->
     <script src="./auto-config-helper.js"></script>
+    
+    <!-- Tải trình tải dữ liệu linh kiện -->
+    <script src="./import-loader.js" type="module"></script>
+    
     <script>
         // Load required libraries
         function loadRequiredLibraries() {
@@ -1316,7 +1320,7 @@
                     'monitor': document.getElementById('monitor')
                 };
                 
-                // Lấy dữ liệu từ window object sau khi imports đã hoàn thành
+                // Lấy dữ liệu từ window object
                 const componentsData = {
                     'cpu': window.cpuData || {},
                     'mainboard': window.mainboardData || {},
@@ -1374,18 +1378,11 @@
             try {
                 await loadRequiredLibraries();
                 
-                // Wait for component data to be loaded
-                const checkComponentData = () => {
-                    if (window.cpuData && window.vgaData) {
-                        populateDropdowns();
-                        console.log('Component data loaded, populating dropdowns');
-                    } else {
-                        console.log('Waiting for component data to load...');
-                        setTimeout(checkComponentData, 100);
-                    }
-                };
-                
-                checkComponentData();
+                // Lắng nghe sự kiện dữ liệu đã được tải
+                document.addEventListener('component-data-loaded', () => {
+                    console.log('Nhận được sự kiện component-data-loaded, đang điền dữ liệu vào dropdowns');
+                    populateDropdowns();
+                });
                 
                 // Make sure config table is hidden initially
                 const configTable = document.getElementById('config-table');
@@ -1426,6 +1423,14 @@
                     });
                 }
                 
+                // Nếu sau 5 giây vẫn chưa nhận được sự kiện, thử kiểm tra dữ liệu trực tiếp
+                setTimeout(() => {
+                    if (window.cpuData && !document.getElementById('cpu').options.length > 1) {
+                        console.log('Đã tải dữ liệu nhưng không nhận được sự kiện, điền dữ liệu vào dropdowns');
+                        populateDropdowns();
+                    }
+                }, 5000);
+                
             } catch (error) {
                 console.error('Error during initialization:', error);
             }
@@ -1434,7 +1439,12 @@
         // Đảm bảo updateConfigTableImages có thể truy cập toàn cục
         window.formatPrice = formatPrice;
     </script>
-<!-- ... existing code ... -->
+
+    <!-- Thêm script kết nối các component -->
+    <script src="component-connector.js"></script>
+
+    <!-- Event handlers script -->
+    <script src="event-handlers.js"></script>
 </body>
 
 </html>

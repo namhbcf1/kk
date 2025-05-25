@@ -384,123 +384,49 @@
     }
     
     // Lấy URL hình ảnh linh kiện (mặc định)
-    function getComponentImageUrl(componentType) {
-        // Get image paths from the data files, or return a default
-        const defaultImages = {
-            CPU: 'images/intel-core-i5-3470.jpg',
-            Mainboard: 'images/gigabyte-h61m-ds2.jpg',
-            RAM: 'images/ram-corsair-vengeance-16gb-ddr4-3200.jpg',
-            VGA: 'images/1070ti-8gb-msi.jpg',
-            SSD: 'images/crucial-p3-500gb.jpg',
-            PSU: 'images/nguon-centaur-750w-80-plus.jpg',
-            Case: 'images/gaming-start-ga3fg.jpg',
-            Cooler: 'images/2ongdong.jpg',
-            HDD: 'images/wd-blue-1tb.jpg',
-            Monitor: 'images/duan-ip25f180.jpg'
-        };
+    function getComponentImageUrl(componentType, componentId) {
+        const component = getComponentData(componentType, componentId);
+        if (!component || !component.image) {
+            // Trả về đường dẫn hình ảnh mặc định nếu không tìm thấy hình ảnh
+            return 'images/placeholder.jpg';
+        }
         
-        return defaultImages[componentType] || 'images/placeholder.jpg';
+        return component.image;
     }
     
     // Function to get component data from the data files
     function getComponentData(componentType, componentId) {
-        // Map component type to data object
+        if (!componentId) return null;
+        
+        // Map componentType đến đúng đối tượng dữ liệu toàn cục
         const dataMap = {
-            CPU: window.cpuData,
-            Mainboard: window.mainboardData,
-            RAM: window.ramData,
-            VGA: window.vgaData,
-            SSD: window.ssdData,
-            PSU: window.psuData,
-            Case: window.caseData,
-            Cooler: window.cpuCoolerData,
-            HDD: window.hddData,
-            Monitor: window.monitorData
+            'CPU': window.cpuData,
+            'Mainboard': window.mainboardData,
+            'RAM': window.ramData,
+            'VGA': window.vgaData,
+            'SSD': window.ssdData,
+            'PSU': window.psuData,
+            'Case': window.caseData,
+            'Cooler': window.cpuCoolerData,
+            'HDD': window.hddData,
+            'Monitor': window.monitorData
         };
         
-        const data = dataMap[componentType];
+        // Lấy đối tượng dữ liệu
+        const dataObj = dataMap[componentType];
+        if (!dataObj) return null;
         
-        if (data && componentId && data[componentId]) {
-            return data[componentId];
-        }
-        
-        return null;
+        // Trả về dữ liệu component
+        return dataObj[componentId];
     }
     
     // Function to get component specs from component data
     function getComponentSpecs(componentType, componentId) {
         const component = getComponentData(componentType, componentId);
+        if (!component) return {};
         
-        if (!component) {
-            return {}; // Return empty object if component not found
-        }
-        
-        // Return appropriate specs based on component type
-        switch (componentType) {
-            case 'CPU':
-                return {
-                    'Socket': component.socket || '',
-                    'Cores': component.cores || '',
-                    'Threads': component.threads || '',
-                    'Technology': component.technology || '',
-                    'RAM Support': component.ram_support || '',
-                    'RAM Bus': component.ram_bus || ''
-                };
-            case 'Mainboard':
-                return {
-                    'Sockets': Array.isArray(component.sockets) ? component.sockets.join(', ') : component.sockets || '',
-                    'Memory Type': component.memoryType || '',
-                    'NVMe Slots': component.nvmeSlots || '',
-                    'PCIe Version': component.pcieVersion || '',
-                    'Form Factor': component.formFactor || ''
-                };
-            case 'RAM':
-                return {
-                    'Type': component.type || '',
-                    'Speed': component.speed || '',
-                    'Size': component.size || ''
-                };
-            case 'VGA':
-                return {
-                    'VRAM': component.vram || '',
-                    'VRAM Type': component.vram_type || '',
-                    'Card Type': component.card_type || ''
-                };
-            case 'SSD':
-                return {
-                    'Type': component.type || '',
-                    'Speed': component.speed || ''
-                };
-            case 'PSU':
-                return {
-                    'Power': component.power || '',
-                    'Connectors': component.connectors ? 
-                        `MB: ${component.connectors.mainboard || ''}, CPU: ${component.connectors.cpu ? component.connectors.cpu.join(', ') : ''}, PCIe: ${component.connectors.pcie ? component.connectors.pcie.length : 0}, SATA: ${component.connectors.sata || 0}, Molex: ${component.connectors.molex || 0}` : ''
-                };
-            case 'Case':
-                return {
-                    'Mainboard Support': component.supportedMainboards ? component.supportedMainboards.join(', ') : '',
-                    'Dimensions': component.dimensions || ''
-                };
-            case 'Cooler':
-                return {
-                    'Sockets Support': component.sockets ? component.sockets.join(', ') : '',
-                    'RGB Sync': component.sync || ''
-                };
-            case 'HDD':
-                return {
-                    'Brand': component.brand || '',
-                    'Warranty': component.warranty || ''
-                };
-            case 'Monitor':
-                return {
-                    'Panel Type': component.panelType || '',
-                    'Refresh Rate': component.refreshRate || '',
-                    'Screen Size': component.screenSize || ''
-                };
-            default:
-                return {};
-        }
+        // Trả về thuộc tính specs của component nếu có
+        return component.specs || {};
     }
     
     // Cải thiện dropdowns
@@ -684,12 +610,12 @@ function updateConfigTableImages() {
             if (componentData) {
                 // Create an image element
                 const img = document.createElement('img');
-                img.src = componentData.image || getComponentImageUrl(componentType);
+                img.src = componentData.image || getComponentImageUrl(componentType, select.value);
                 img.alt = componentData.name;
                 img.style.maxWidth = '50px';
                 img.style.maxHeight = '50px';
                 img.onerror = function() {
-                    this.src = getComponentImageUrl(componentType); // Fallback image
+                    this.src = getComponentImageUrl(componentType, select.value); // Fallback image
                 };
                 
                 // Clear cell and append the image
