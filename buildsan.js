@@ -3165,7 +3165,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Hiển thị modal chi tiết cấu hình
     function showConfigDetailModal(configData) {
-        console.log('Enhanced showConfigDetailModal called - displaying configuration table');
+        console.log('Enhanced showConfigDetailModal called');
+        
+        // Kiểm tra xem người dùng có đóng modal không và không phải là hiển thị cưỡng chế
+        if (window.userClosedConfigModal && !(configData && configData.forceShow)) {
+            console.log('User closed modal and not forced to show - skipping display');
+            return;
+        }
+        
+        // Kiểm tra xem có đủ các thành phần quan trọng đã được chọn chưa
+        const hasRequiredComponents = () => {
+            const cpu = document.getElementById('cpu');
+            const vga = document.getElementById('vga');
+            return cpu && cpu.value && cpu.value !== '' && 
+                   vga && vga.value && vga.value !== '';
+        };
+        
+        // Chỉ hiển thị nếu được cưỡng chế hoặc có đủ thành phần
+        if (!(configData && configData.forceShow) && !hasRequiredComponents()) {
+            console.log('Not showing configuration table - missing required components');
+            alert('Vui lòng chọn ít nhất CPU và VGA để xem bảng cấu hình');
+            return;
+        }
         
         // Kiểm tra và tạo modal nếu chưa tồn tại
         let summaryModal = document.getElementById('summary-modal');
@@ -3181,7 +3202,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Lấy tham chiếu đến modal và modalContent
         const modal = summaryModal;
-        const modalContent = summaryModal.querySelector('.modal-content');
+        const modalContent = modal.querySelector('.modal-content');
         
         if (!modalContent) {
             console.error('Modal content element not found');
@@ -3211,248 +3232,24 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         
-        // Prepare content
-        let content = `
-            <div class="modal-header">
-                <h2><i class="fas fa-clipboard-list"></i> Cấu hình chi tiết</h2>
-                <span class="close-modal">&times;</span>
-            </div>
-            <div class="modal-body">
-                <table class="config-detail-table config-table">
-                    <thead>
-                        <tr>
-                            <th>STT</th>
-                            <th>HÌNH ẢNH</th>
-                            <th>TÊN, MÃ, LOẠI LINH KIỆN</th>
-                            <th>ĐVT</th>
-                            <th>SỐ LƯỢNG</th>
-                            <th>ĐƠN GIÁ</th>
-                            <th>THÀNH TIỀN</th>
-                            <th>BẢO HÀNH</th>
-                            <th>GHI CHÚ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-        
-        // Component mapping
-        const componentMap = [
-            { key: 'cpu', label: 'CPU', index: 1, warranty: '36T' },
-            { key: 'mainboard', label: 'Mainboard', index: 2, warranty: '36T' },
-            { key: 'ram', label: 'RAM', index: 3, warranty: '36T' },
-            { key: 'vga', label: 'VGA', index: 4, warranty: '3T' },
-            { key: 'ssd', label: 'SSD', index: 5, warranty: '36T' },
-            { key: 'cpuCooler', label: 'CPU Cooler', index: 6, warranty: '12T' },
-            { key: 'psu', label: 'PSU', index: 7, warranty: '36T' },
-            { key: 'case', label: 'Case', index: 8, warranty: '12T' },
-            { key: 'hdd', label: 'HDD', index: 9, warranty: '12T' },
-            { key: 'monitor', label: 'Monitor', index: 10, warranty: '36T' }
-        ];
-        
-        let totalPrice = 0;
-        let addedComponents = 0;
-        
-        // Add components to table
-        for (const component of componentMap) {
-            // Get the selected value from the dropdown
-            const selectElement = document.getElementById(component.key);
-            if (!selectElement || !selectElement.value || selectElement.value === '') continue;
-            
-            // Get the selected option text for name
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
-            let componentName = selectedOption ? selectedOption.text.trim() : '';
-            
-            // Skip placeholders
-            if (!componentName || componentName.includes('Chọn') || componentName === '') continue;
-            
-            // Try to get component data from window object
-            const dataSource = window[component.key + 'Data'];
-            const selectedValue = selectElement.value;
-            let componentData = dataSource && dataSource[selectedValue] ? dataSource[selectedValue] : null;
-            
-            // Extract price - try multiple methods
-            let price = 0;
-            
-            // Method 1: Get from component data
-            if (componentData && componentData.price) {
-                price = componentData.price;
-            } 
-            // Method 2: Extract from component name
-            else if (componentName) {
-                // Extract price from component name using various patterns
-                const extractPrice = (str) => {
-                    // Try different patterns
-                    const patterns = [
-                        /[\d,]+,\d{3}(?=\s*VNĐ)/,                       // Format: 1,300,000 VNĐ
-                        /(\d{1,3}(?:[,.]\d{3})+)\s*(?:VNĐ|vnđ)/i,       // Format: 5,800,000 VNĐ
-                        /-\s*(\d[\d.,]*)\s*(?:VNĐ|vnđ)?/                // Format: - 5800000
-                    ];
-                    
-                    for (const pattern of patterns) {
-                        const match = str.match(pattern);
-                        if (match) {
-                            // Extract the first capture group or the full match
-                            const priceStr = match[1] || match[0];
-                            // Clean up and parse the price
-                            return parseInt(priceStr.replace(/[,.]/g, ''));
-                        }
-                    }
-                    return 0;
-                };
-                
-                price = extractPrice(componentName);
-                
-                if (price > 0) {
-                    console.log(`Extracted price for ${component.key}: ${price} from "${componentName}"`);
-                }
-            }
-            
-            // Try to get image for component
-            let imgSrc = '';
-            
-            // Method 1: From component data
-            if (componentData && componentData.image) {
-                imgSrc = componentData.image;
-            }
-            
-            // Method 2: From existing table cell
-            if (!imgSrc) {
-                const imgCell = document.getElementById(`${component.key}-image`);
-                if (imgCell) {
-                    const img = imgCell.querySelector('img');
-                    if (img && img.src) {
-                        imgSrc = img.src;
-                    }
-                }
-            }
-            
-            // Method 3: Create a fallback image
-            if (!imgSrc) {
-                // Try to find a default image based on component type
-                const defaultImages = {
-                    'cpu': 'images/components/cpu.png',
-                    'mainboard': 'images/components/mainboard.png',
-                    'ram': 'images/components/ram.png',
-                    'vga': 'images/components/vga.png',
-                    'ssd': 'images/components/ssd.png',
-                    'cpuCooler': 'images/components/cooler.png',
-                    'psu': 'images/components/psu.png',
-                    'case': 'images/components/case.png',
-                    'hdd': 'images/components/hdd.png',
-                    'monitor': 'images/components/monitor.png'
-                };
-                imgSrc = defaultImages[component.key] || '';
-            }
-            
-            // Add component to the table
-            if (componentName) {
-                addedComponents++;
-                totalPrice += price;
-                
-                const imageHtml = imgSrc ? 
-                    `<img src="${imgSrc}" alt="${component.label}" style="max-width: 70px; max-height: 70px;">` : 
-                    '';
-                
-                content += `
-                    <tr>
-                        <td>${component.index}</td>
-                        <td>${imageHtml}</td>
-                        <td>${componentName}</td>
-                        <td>Chiếc</td>
-                        <td>1</td>
-                        <td>${price.toLocaleString()}</td>
-                        <td>${price.toLocaleString()}</td>
-                        <td>${component.warranty}</td>
-                        <td>NEW</td>
-                    </tr>
-                `;
-            }
-        }
-        
-        // Add total row and other bottom rows
-        content += `
-                    <tr>
-                        <td colspan="6"></td>
-                        <td>-</td>
-                        <td colspan="2"></td>
-                    </tr>
-                    <tr class="total-row">
-                        <td colspan="6" style="text-align: right;"><strong>Tổng cộng</strong></td>
-                        <td id="total-price-cell">${totalPrice.toLocaleString()}</td>
-                        <td colspan="2"></td>
-                    </tr>
-                    <tr>
-                        <td colspan="6" style="text-align: right;"><strong>Chiết khấu</strong></td>
-                        <td></td>
-                        <td colspan="2"></td>
-                    </tr>
-                    <tr>
-                        <td colspan="6" style="text-align: right;"><strong>Đã thanh toán</strong></td>
-                        <td>${totalPrice.toLocaleString()}</td>
-                        <td colspan="2"></td>
-                    </tr>
-                    <tr>
-                        <td colspan="6" style="text-align: right;"><strong>Còn lại</strong></td>
-                        <td id="remaining-price-cell">${totalPrice.toLocaleString()}</td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tbody>
-            </table>
-            <div id="socket-message" class="system-message"></div>
-            <div id="score-message" class="system-message"></div>
-            <div id="upgrade-message" class="system-message"></div>
-            <div class="share-options">
-                <button id="share-facebook" class="share-button"><i class="fab fa-facebook"></i> Chia sẻ Facebook</button>
-                <button id="copy-link" class="share-button"><i class="fas fa-link"></i> Sao chép liên kết</button>
-                <button id="download-config" class="share-button luu-cau-hinh"><i class="fas fa-download"></i> Tải cấu hình</button>
-            </div>
-        </div>
-    `;
-        
-        // Update modal content
-        modalContent.innerHTML = content;
-        
-        // Setup close button
-        const closeBtn = modalContent.querySelector('.close-modal');
-        if (closeBtn) {
-            closeBtn.onclick = function(e) {
-                e.stopPropagation();
-                modal.style.display = 'none';
-                // Track that user has manually closed the modal
-                window.userClosedConfigModal = true;
-                console.log('User closed config modal - will not reopen automatically until next component change');
-                return false;
-            };
-        }
-        
-        // Setup close modal when clicking outside the content
-        modal.onclick = function(e) {
-            if (e.target === modal) {
+        // Thêm sự kiện đóng modal khi click ra ngoài
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
                 modal.style.display = 'none';
                 window.userClosedConfigModal = true;
-                console.log('User closed config modal by clicking outside');
-            }
-        };
-        
-        // Thêm phím tắt ESC để đóng modal
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && modal.style.display === 'block') {
-                modal.style.display = 'none';
-                window.userClosedConfigModal = true;
-                console.log('User closed config modal with ESC key');
             }
         });
         
-        // Show modal only if user hasn't closed it or is explicitly showing it
-        if (!window.userClosedConfigModal || configData?.forceShow) {
-            modal.style.display = 'block';
-            console.log(`Configuration table displayed with ${addedComponents} components and total price: ${totalPrice.toLocaleString()}`);
-        } else {
-            console.log('Not showing modal because user previously closed it');
-        }
+        // Thêm sự kiện đóng modal khi nhấn ESC
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal.style.display === 'block') {
+                modal.style.display = 'none';
+                window.userClosedConfigModal = true;
+            }
+        });
     }
 
-    // Make sure showConfigDetailModal is available globally
+    // Đảm bảo window.showConfigDetailModal luôn tham chiếu đến hàm mới nhất
     window.showConfigDetailModal = showConfigDetailModal;
 
     // Handle all images in the document
@@ -4014,8 +3811,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         
 // Add code for manual display button and conditional display after selections
 document.addEventListener('DOMContentLoaded', function() {
-    // Create a function to display the configuration table only when appropriate
-    const showConfigTable = function(forceShow = false) {
+    // Create a centralized function to display the configuration table only when appropriate
+    window.showConfigTable = function(forceShow = false) {
+        // Validate component compatibility
+        if (typeof window.validateComponentCompatibility === 'function') {
+            const isValid = window.validateComponentCompatibility();
+            if (!isValid && !forceShow) {
+                alert('Có lỗi tương thích giữa các linh kiện. Vui lòng kiểm tra và sửa lỗi trước khi tiếp tục.');
+                return;
+            }
+        }
+        
         // Kiểm tra xem có đủ các thành phần quan trọng đã được chọn
         function hasRequiredComponents() {
             const cpu = document.getElementById('cpu');
@@ -4024,45 +3830,20 @@ document.addEventListener('DOMContentLoaded', function() {
                    vga && vga.value && vga.value !== '';
         }
         
+        if (!hasRequiredComponents() && !forceShow) {
+            alert('Vui lòng chọn ít nhất CPU và VGA để xem bảng cấu hình chi tiết');
+            return;
+        }
+        
         if (typeof window.showConfigDetailModal === 'function') {
-            if (forceShow || hasRequiredComponents()) {
-                console.log('Displaying configuration table' + (forceShow ? ' (forced)' : ''));
-                // Khi gọi hàm với force = true, chúng ta sẽ luôn hiển thị bảng
-                window.showConfigDetailModal({forceShow: forceShow});
-            } else {
-                console.log('Not showing configuration table - missing required components');
-            }
+            // Reset đóng modal
+            window.userClosedConfigModal = false;
+            // Khi gọi hàm với force = true, chúng ta sẽ luôn hiển thị bảng
+            window.showConfigDetailModal({forceShow: true});
+        } else {
+            console.log('Not showing configuration table - missing showConfigDetailModal function');
         }
     };
-    
-    // Add a button at the bottom of the page to manually trigger table display
-    const showTableButtonContainer = document.createElement('div');
-    showTableButtonContainer.style.position = 'fixed';
-    showTableButtonContainer.style.bottom = '20px';
-    showTableButtonContainer.style.left = '50%';
-    showTableButtonContainer.style.transform = 'translateX(-50%)';
-    showTableButtonContainer.style.zIndex = '1000';
-    
-    const showTableButton = document.createElement('button');
-    showTableButton.id = 'show-config-button'; // Thêm ID cho dễ tham chiếu
-    showTableButton.textContent = 'Hiển thị bảng cấu hình';
-    showTableButton.style.padding = '10px 20px';
-    showTableButton.style.backgroundColor = '#2196F3';
-    showTableButton.style.color = 'white';
-    showTableButton.style.border = 'none';
-    showTableButton.style.borderRadius = '5px';
-    showTableButton.style.cursor = 'pointer';
-    showTableButton.style.fontWeight = 'bold';
-    showTableButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
-    
-    showTableButton.addEventListener('click', function() {
-        // When button is clicked, it's an explicit user action to show the table
-        window.userClosedConfigModal = false;
-        showConfigTable(true); // Force show when clicked
-    });
-    
-    showTableButtonContainer.appendChild(showTableButton);
-    document.body.appendChild(showTableButtonContainer);
     
     // Attach listeners to important controls, but use more restraint in showing the table
     
@@ -4243,20 +4024,25 @@ function forceShowComponentTable() {
 
 // Add this function to the window load event
 window.addEventListener('load', function() {
-    // Add event listeners to dropdowns to force show the component table when changed
+    // Add event listeners to dropdowns to validate components and only show table when components are compatible
     const dropdowns = ['cpu', 'mainboard', 'vga', 'ram', 'ssd', 'psu', 'case', 'cpuCooler'];
     
-    // Kiểm tra tương thích tất cả các linh kiện hiện tại
-    function validateAllComponents() {
-        // Lấy các giá trị đã chọn
-        const cpuValue = document.getElementById('cpu')?.value;
-        const mainboardValue = document.getElementById('mainboard')?.value;
-        const ramValue = document.getElementById('ram')?.value;
-        
-        // Biến để kiểm tra tất cả các thành phần đều tương thích
-        let allComponentsValid = true;
-        
-        // Tạo thông báo lỗi
+    // Validate all components on page load
+    if (typeof window.validateComponentCompatibility === 'function') {
+        setTimeout(window.validateComponentCompatibility, 1000);
+    }
+    
+    dropdowns.forEach(function(id) {
+        const dropdown = document.getElementById(id);
+        if (dropdown) {
+            dropdown.addEventListener('change', function() {
+                // Kiểm tra tương thích trước khi hiển thị bảng
+                if (typeof window.validateComponentCompatibility === 'function') {
+                    window.validateComponentCompatibility();
+                }
+            });
+        }
+    });
         function createErrorMessage(message) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'compatibility-error';
@@ -4365,26 +4151,46 @@ window.addEventListener('load', function() {
         }
     });
     
-    // Don't automatically show table on page load
-    // But add a prominent button to show the configuration table
+    // Chỉ tạo một nút nổi bật ở cuối trang để hiển thị bảng cấu hình
     const showTableBtn = document.createElement('button');
-    showTableBtn.textContent = 'XEM BẢNG CẤU HÌNH CHI TIẾT';
+    showTableBtn.id = 'main-config-button';
+    showTableBtn.textContent = '👉 XEM BẢNG CẤU HÌNH CHI TIẾT 👈';
     showTableBtn.style.position = 'fixed';
     showTableBtn.style.bottom = '20px';
-    showTableBtn.style.right = '20px';
-    showTableBtn.style.padding = '15px 20px';
-    showTableBtn.style.backgroundColor = '#007bff';
+    showTableBtn.style.left = '50%';
+    showTableBtn.style.transform = 'translateX(-50%)';
+    showTableBtn.style.padding = '15px 25px';
+    showTableBtn.style.backgroundColor = '#4CAF50';
     showTableBtn.style.color = 'white';
     showTableBtn.style.border = 'none';
     showTableBtn.style.borderRadius = '5px';
-    showTableBtn.style.fontSize = '16px';
+    showTableBtn.style.fontSize = '18px';
     showTableBtn.style.fontWeight = 'bold';
     showTableBtn.style.zIndex = '9999';
     showTableBtn.style.cursor = 'pointer';
     showTableBtn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+    showTableBtn.style.display = 'block';
+    showTableBtn.style.opacity = '0.9';
+    showTableBtn.disabled = true;
+    
+    // Thêm animation nhẹ
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse-button {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+        #main-config-button:not(:disabled) {
+            animation: pulse-button 2s infinite;
+        }
+    `;
+    document.head.appendChild(style);
     
     showTableBtn.addEventListener('click', function() {
-        if (typeof window.showConfigDetailModal === 'function') {
+        if (typeof window.showConfigTable === 'function') {
+            window.showConfigTable(false);
+        } else if (typeof window.showConfigDetailModal === 'function') {
             // Reset the closed state since this is an explicit user action
             window.userClosedConfigModal = false;
             window.showConfigDetailModal();
@@ -4396,55 +4202,48 @@ window.addEventListener('load', function() {
                         
 document.addEventListener('DOMContentLoaded', function() {
     // Tạo nút hiển thị bảng cấu hình chi tiết
-    function createShowConfigButton() {
-        // Tìm vùng chứa linh kiện
-        const componentsContainer = document.querySelector('.components-grid') || document.querySelector('.component-container');
-        if (!componentsContainer) return;
-        
-        // Kiểm tra nếu nút đã tồn tại để tránh trùng lặp
-        if (document.getElementById('show-config-detail-button')) return;
-        
-        // Tạo nút
-        const showConfigButton = document.createElement('button');
-        showConfigButton.id = 'show-config-detail-button';
-        showConfigButton.className = 'action-button primary-btn';
-        showConfigButton.textContent = 'XEM BẢNG CẤU HÌNH CHI TIẾT';
-        showConfigButton.style.width = '100%';
-        showConfigButton.style.margin = '20px 0';
-        showConfigButton.style.padding = '12px';
-        showConfigButton.style.backgroundColor = '#2196F3';
-        showConfigButton.style.color = 'white';
-        showConfigButton.style.border = 'none';
-        showConfigButton.style.borderRadius = '5px';
-        showConfigButton.style.fontSize = '16px';
-        showConfigButton.style.fontWeight = 'bold';
-        showConfigButton.style.cursor = 'pointer';
-        showConfigButton.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-        
-        // Thêm sự kiện click
-        showConfigButton.addEventListener('click', function() {
-            // Kiểm tra nếu có CPU và Mainboard được chọn
-            const cpu = document.getElementById('cpu');
-            const mainboard = document.getElementById('mainboard');
-            
-            if (cpu && mainboard && cpu.value && mainboard.value) {
-                // Reset trạng thái đóng bảng vì đây là hành động rõ ràng của người dùng
-                window.userClosedConfigModal = false;
-                
-                // Hiển thị bảng cấu hình
-                if (typeof window.showConfigDetailModal === 'function') {
-                    window.showConfigDetailModal();
-                } else {
-                    // Fallback: gọi hàm calculateTotalPriceAndSummary nếu có
-                    if (typeof calculateTotalPriceAndSummary === 'function') {
-                        calculateTotalPriceAndSummary();
-                    }
-                }
-            } else {
-                // Hiển thị thông báo nếu chưa chọn đủ thành phần
-                alert('Vui lòng chọn ít nhất CPU và Mainboard để xem bảng cấu hình chi tiết');
+function createShowConfigButton() {
+    // Tìm vùng chứa linh kiện
+    const componentsContainer = document.querySelector('.components-grid') || document.querySelector('.component-container');
+    if (!componentsContainer) return;
+    
+    // Kiểm tra nếu nút đã tồn tại để tránh trùng lặp
+    if (document.getElementById('show-config-detail-button')) return;
+    
+    // Tạo nút
+    const showConfigButton = document.createElement('button');
+    showConfigButton.id = 'show-config-detail-button';
+    showConfigButton.className = 'action-button primary-btn';
+    showConfigButton.textContent = 'XEM BẢNG CẤU HÌNH CHI TIẾT';
+    showConfigButton.style.width = '100%';
+    showConfigButton.style.margin = '20px 0';
+    showConfigButton.style.padding = '15px';
+    showConfigButton.style.backgroundColor = '#4CAF50';
+    showConfigButton.style.color = 'white';
+    showConfigButton.style.border = 'none';
+    showConfigButton.style.borderRadius = '5px';
+    showConfigButton.style.fontSize = '18px';
+    showConfigButton.style.fontWeight = 'bold';
+    showConfigButton.style.cursor = 'pointer';
+    showConfigButton.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+    showConfigButton.disabled = true;
+    showConfigButton.style.opacity = '0.5';
+    
+    // Thêm sự kiện click
+    showConfigButton.addEventListener('click', function() {
+        // Sử dụng hàm showConfigTable tập trung
+        if (typeof window.showConfigTable === 'function') {
+            window.showConfigTable(false); // Không cưỡng chế, chỉ hiển thị khi đủ điều kiện
+        } else {
+            // Fallback nếu không có hàm mới
+            // Hiển thị bảng cấu hình
+            if (typeof window.showConfigDetailModal === 'function') {
+                window.showConfigDetailModal();
+            } else if (typeof calculateTotalPriceAndSummary === 'function') {
+                calculateTotalPriceAndSummary();
             }
-        });
+        }
+    });
         
         // Chèn nút vào cuối vùng chứa linh kiện
         componentsContainer.appendChild(showConfigButton);
@@ -4780,6 +4579,218 @@ document.addEventListener('DOMContentLoaded', function() {
                     clearInterval(checkInterval);
                 }
             }, 1000);
+        }
+    }, 1000);
+});
+                        
+// Thêm hàm global thống nhất để kiểm tra tương thích
+window.validateComponentCompatibility = function() {
+    // Lấy các giá trị đã chọn
+    const cpuValue = document.getElementById('cpu')?.value;
+    const mainboardValue = document.getElementById('mainboard')?.value;
+    const ramValue = document.getElementById('ram')?.value;
+    const vgaValue = document.getElementById('vga')?.value;
+    
+    // Biến để kiểm tra tất cả các thành phần đều tương thích
+    let allComponentsValid = true;
+    let errorMessages = [];
+    
+    // Reset border colors
+    const resetBorderColors = () => {
+        const dropdowns = ['cpu', 'mainboard', 'ram', 'vga', 'ssd', 'psu', 'case', 'cpuCooler', 'hdd', 'monitor'];
+        dropdowns.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.style.borderColor = '';
+        });
+    };
+    resetBorderColors();
+    
+    // Xóa thông báo cũ
+    const clearOldMessages = () => {
+        const container = document.querySelector('.components-grid');
+        if (container) {
+            const oldMessages = container.querySelectorAll('.compatibility-error');
+            oldMessages.forEach(m => m.remove());
+        }
+    };
+    clearOldMessages();
+    
+    // Kiểm tra tương thích CPU-Mainboard
+    if (cpuValue && mainboardValue) {
+        const cpu = window.cpuData[cpuValue];
+        const mainboard = window.mainboardData[mainboardValue];
+        
+        if (cpu && mainboard) {
+            const isCpuMbCompatible = determineCpuMainboardCompatibility(cpu, mainboard);
+            
+            if (!isCpuMbCompatible) {
+                // Lấy tên socket để hiển thị
+                const cpuSocket = cpu.socket || getCPUSocketFromName(cpu.name) || 'Unknown';
+                const mbSocket = mainboard.socket || getMainboardSocketFromName(mainboard.name) || 'Unknown';
+                
+                errorMessages.push(`CPU ${cpu.name} (Socket ${cpuSocket}) không tương thích với Mainboard ${mainboard.name} (Socket ${mbSocket})`);
+                
+                // Highlight dropdown lỗi
+                const cpuDropdown = document.getElementById('cpu');
+                const mainboardDropdown = document.getElementById('mainboard');
+                if (cpuDropdown) cpuDropdown.style.borderColor = '#e74c3c';
+                if (mainboardDropdown) mainboardDropdown.style.borderColor = '#e74c3c';
+                
+                allComponentsValid = false;
+            }
+            
+            // Kiểm tra tương thích RAM-Mainboard nếu đã chọn RAM
+            if (ramValue && allComponentsValid) {
+                const ram = window.ramData[ramValue];
+                
+                // Đảm bảo ram có dữ liệu đầy đủ
+                if (ram) {
+                    if (!ram.type) {
+                        if (ram.name.includes('DDR5')) ram.type = 'DDR5';
+                        else if (ram.name.includes('DDR4')) ram.type = 'DDR4';
+                        else if (ram.name.includes('DDR3')) ram.type = 'DDR3';
+                        else if (ram.name.includes('Bus 6000') || ram.name.includes('Bus 5200')) ram.type = 'DDR5';
+                        else if (ram.name.includes('Bus 3200')) ram.type = 'DDR4';
+                        else if (ram.name.includes('1600MHz')) ram.type = 'DDR3';
+                    }
+                    
+                    const isRamCompatible = determineRamCompatibility(ram, mainboard);
+                    
+                    if (!isRamCompatible) {
+                        errorMessages.push(`RAM ${ram.name} (${ram.type || 'Unknown Type'}) không tương thích với Mainboard ${mainboard.name} (${mainboard.memoryType || 'Unknown Type'})`);
+                        
+                        // Highlight dropdown lỗi
+                        const ramDropdown = document.getElementById('ram');
+                        if (ramDropdown) ramDropdown.style.borderColor = '#e74c3c';
+                        
+                        allComponentsValid = false;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Hiển thị các thông báo lỗi
+    if (errorMessages.length > 0) {
+        const container = document.querySelector('.components-grid');
+        if (container) {
+            errorMessages.forEach(message => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'compatibility-error';
+                msgDiv.innerHTML = `<strong>Lỗi tương thích:</strong> ${message}`;
+                msgDiv.style.color = '#e74c3c';
+                msgDiv.style.backgroundColor = '#fadbd8';
+                msgDiv.style.padding = '10px';
+                msgDiv.style.borderRadius = '5px';
+                msgDiv.style.margin = '10px 0';
+                msgDiv.style.fontWeight = 'bold';
+                msgDiv.style.borderLeft = '5px solid #e74c3c';
+                container.prepend(msgDiv);
+                
+                // Tự động xóa sau 7 giây
+                setTimeout(() => {
+                    msgDiv.remove();
+                }, 7000);
+            });
+        }
+    }
+    
+    // Cập nhật trạng thái nút hiển thị bảng cấu hình
+    const updateConfigButtonState = () => {
+        // Chỉ cho phép hiển thị bảng cấu hình nếu có ít nhất CPU và VGA đã chọn và tất cả thành phần tương thích
+        const hasRequiredComponents = cpuValue && vgaValue;
+        const canShowConfig = hasRequiredComponents && allComponentsValid;
+        
+        // Lấy tất cả các nút hiển thị cấu hình
+        const configButtons = [
+            document.getElementById('show-config-button'),
+            document.getElementById('show-config-detail-button'),
+            document.getElementById('config-detail-button'),
+            document.getElementById('main-config-button')
+        ];
+        
+        configButtons.forEach(button => {
+            if (button) {
+                button.disabled = !canShowConfig;
+                button.style.opacity = canShowConfig ? '1' : '0.5';
+                button.title = canShowConfig ? 'Xem bảng cấu hình chi tiết' : 'Vui lòng chọn CPU, VGA và đảm bảo tất cả linh kiện tương thích';
+            }
+        });
+    };
+    updateConfigButtonState();
+    
+    return allComponentsValid;
+};
+
+// Thay thế hàm validateAllComponents với tham chiếu đến hàm mới
+function validateAllComponents() {
+    return window.validateComponentCompatibility();
+}
+                        
+// Ensure compatibility checks are performed when components change
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to all component dropdowns
+    const componentDropdowns = [
+        'cpu', 'mainboard', 'vga', 'ram', 'ssd', 'cpuCooler', 'psu', 'case', 'hdd', 'monitor'
+    ];
+    
+    componentDropdowns.forEach(component => {
+        const dropdown = document.getElementById(component);
+        if (dropdown) {
+            dropdown.addEventListener('change', function() {
+                console.log(`${component} changed - validating compatibility`);
+                // Validate compatibility after a short delay to ensure all data is updated
+                setTimeout(() => {
+                    if (typeof window.validateComponentCompatibility === 'function') {
+                        window.validateComponentCompatibility();
+                    }
+                }, 100);
+            });
+        }
+    });
+    
+    // Hide green information sections
+    const hideGreenSections = () => {
+        // Hide all green info elements
+        const greenElements = [
+            document.querySelector('div[style*="background-color: #dff0d8"]'),
+            document.querySelector('.alert-success'),
+            document.querySelector('.bg-success'),
+            document.querySelectorAll('.green-info-box'),
+            document.querySelectorAll('[style*="background-color: rgb(223, 240, 216)"]')
+        ];
+        
+        greenElements.forEach(elem => {
+            if (elem) {
+                if (elem.length) {
+                    // Handle NodeList
+                    for (let i = 0; i < elem.length; i++) {
+                        if (elem[i]) elem[i].style.display = 'none';
+                    }
+                } else {
+                    // Handle single element
+                    elem.style.display = 'none';
+                }
+            }
+        });
+        
+        // Hide green info footer (more targeted)
+        const footer = document.querySelector('footer');
+        if (footer) {
+            const greenDivs = footer.querySelectorAll('div[style*="background-color"]');
+            greenDivs.forEach(div => div.style.display = 'none');
+        }
+    };
+    
+    // Run initially and after a delay to catch dynamically loaded elements
+    hideGreenSections();
+    setTimeout(hideGreenSections, 1000);
+    setTimeout(hideGreenSections, 3000);
+    
+    // Validate on page load
+    setTimeout(() => {
+        if (typeof window.validateComponentCompatibility === 'function') {
+            window.validateComponentCompatibility();
         }
     }, 1000);
 });
