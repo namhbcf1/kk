@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Components Data Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #0066cc;
+        }
+        .component-section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 5px;
+            padding: 5px;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Components Data Test</h1>
+    
+    <div class="component-section">
+        <h2>VGA Components</h2>
+        <ul id="vga-list"></ul>
+    </div>
+    
+    <div class="component-section">
+        <h2>RAM Components</h2>
+        <ul id="ram-list"></ul>
+    </div>
+    
+    <div class="component-section">
+        <h2>SSD Components</h2>
+        <ul id="ssd-list"></ul>
+    </div>
+    
+    <div class="component-section">
+        <h2>Case Components</h2>
+        <ul id="case-list"></ul>
+    </div>
+    
+    <div class="component-section">
+        <h2>CPU Cooler Components</h2>
+        <ul id="cpuCooler-list"></ul>
+    </div>
+    
+    <div class="component-section">
+        <h2>PSU Components</h2>
+        <ul id="psu-list"></ul>
+    </div>
+
+    <script src="components-data.js"></script>
+    <script>
+        // Function to display component data
+        function displayComponentData() {
+            // Display VGA components
+            const vgaList = document.getElementById('vga-list');
+            Object.keys(vgaData).forEach(key => {
+                const li = document.createElement('li');
+                li.textContent = `${key}: ${vgaData[key].name} - ${vgaData[key].price.toLocaleString()} VND`;
+                vgaList.appendChild(li);
+            });
+            
+            // Display RAM components
+            const ramList = document.getElementById('ram-list');
+            Object.keys(ramData).forEach(key => {
+                const li = document.createElement('li');
+                li.textContent = `${key}: ${ramData[key].name} - ${ramData[key].price.toLocaleString()} VND`;
+                ramList.appendChild(li);
+            });
+            
+            // Display SSD components
+            const ssdList = document.getElementById('ssd-list');
+            Object.keys(ssdData).forEach(key => {
+                const li = document.createElement('li');
+                li.textContent = `${key}: ${ssdData[key].name} - ${ssdData[key].price.toLocaleString()} VND`;
+                ssdList.appendChild(li);
+            });
+            
+            // Display Case components
+            const caseList = document.getElementById('case-list');
+            Object.keys(caseData).forEach(key => {
+                const li = document.createElement('li');
+                li.textContent = `${key}: ${caseData[key].name} - ${caseData[key].price.toLocaleString()} VND`;
+                caseList.appendChild(li);
+            });
+            
+            // Display CPU Cooler components
+            const cpuCoolerList = document.getElementById('cpuCooler-list');
+            Object.keys(cpuCoolerData).forEach(key => {
+                const li = document.createElement('li');
+                li.textContent = `${key}: ${cpuCoolerData[key].name} - ${cpuCoolerData[key].price.toLocaleString()} VND`;
+                cpuCoolerList.appendChild(li);
+            });
+            
+            // Display PSU components
+            const psuList = document.getElementById('psu-list');
+            Object.keys(psuData).forEach(key => {
+                const li = document.createElement('li');
+                li.textContent = `${key}: ${psuData[key].name} - ${psuData[key].price.toLocaleString()} VND`;
+                psuList.appendChild(li);
+            });
+        }
+        
+        // Run when the page loads
+        window.onload = displayComponentData;
+    </script>
+</body>
+</html> 
