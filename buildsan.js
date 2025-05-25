@@ -3282,7 +3282,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Enhance the budget range change handler
+// Enhanced the budget range change handler
 const enhanceBudgetHandler = () => {
     const budgetRange = document.getElementById('budget-range');
     if (budgetRange) {
@@ -3604,5 +3604,111 @@ document.addEventListener('DOMContentLoaded', function() {
             showConfigTable();
         }
     }, 1500);
+});
+                        
+// Enhanced version of checkSocketCompatibility to ensure RAM works with mainboard
+function checkSocketCompatibility(cpuKey, mainboardKey) {
+    const socketMessage = document.getElementById('socket-message');
+    if (!socketMessage) return false;
+    
+    try {
+        if (!cpuKey || !mainboardKey || !window.cpuData[cpuKey] || !window.mainboardData[mainboardKey]) {
+            socketMessage.style.display = 'none';
+            return false;
+        }
+
+        const cpu = window.cpuData[cpuKey];
+        const mainboard = window.mainboardData[mainboardKey];
+        
+        // Get socket information from actual data
+        const cpuSocket = cpu.socket || getCPUSocketFromName(cpu.name);
+        const mbSocket = mainboard.socket || getMainboardSocketFromName(mainboard.name);
+        
+        // Check compatibility
+        const isCompatible = cpuSocket && mbSocket && 
+            (cpuSocket.includes(mbSocket) || mbSocket.includes(cpuSocket));
+        
+        // Update UI based on compatibility
+        if (isCompatible) {
+            socketMessage.textContent = "✅ CPU và Mainboard tương thích.";
+            socketMessage.style.color = "green";
+            socketMessage.style.display = 'block';
+        } else {
+            socketMessage.textContent = "⚠️ CPU và Mainboard không tương thích!";
+            socketMessage.style.color = "red";
+            socketMessage.style.display = 'block';
+        }
+        
+        return isCompatible;
+    } catch (error) {
+        console.error("Error checking socket compatibility:", error);
+        socketMessage.style.display = 'none';
+        return false;
+    }
+}
+
+// Force show component table when user has selected components
+function forceShowComponentTable() {
+    const componentTableContainer = document.querySelector('.component-table-container');
+    if (componentTableContainer) {
+        componentTableContainer.style.display = 'block';
+    }
+    
+    const componentTable = document.querySelector('.component-table');
+    if (componentTable) {
+        componentTable.style.display = 'table';
+    }
+    
+    // Also ensure all rows with data are displayed
+    const cpuKey = document.getElementById('cpu')?.value;
+    const mainboardKey = document.getElementById('mainboard')?.value;
+    const vgaKey = document.getElementById('vga')?.value;
+    const ramKey = document.getElementById('ram')?.value;
+    const ssdKey = document.getElementById('ssd')?.value;
+    const psuKey = document.getElementById('psu')?.value;
+    const caseKey = document.getElementById('case')?.value;
+    const cpuCoolerKey = document.getElementById('cpuCooler')?.value;
+    
+    // Ensure total row is visible
+    const totalRow = document.getElementById('total-row');
+    if (totalRow) {
+        totalRow.style.display = 'table-row';
+    }
+    
+    // If we have at least CPU and mainboard, show the table
+    if (cpuKey && mainboardKey) {
+        // Update the component table with available components
+        updateComponentTable(cpuKey, mainboardKey, vgaKey, ramKey, ssdKey, psuKey, caseKey, cpuCoolerKey);
+        
+        // Calculate and update the total price
+        calculateTotalPriceAndSummary();
+        
+        // Update component scores if available
+        if (typeof updateScores === 'function') {
+            updateScores();
+        }
+        
+        return true;
+    }
+    
+    return false;
+}
+
+// Add this function to the window load event
+window.addEventListener('load', function() {
+    // Add event listeners to dropdowns to force show the component table when changed
+    const dropdowns = ['cpu', 'mainboard', 'vga', 'ram', 'ssd', 'psu', 'case', 'cpuCooler'];
+    
+    dropdowns.forEach(function(id) {
+        const dropdown = document.getElementById(id);
+        if (dropdown) {
+            dropdown.addEventListener('change', function() {
+                setTimeout(forceShowComponentTable, 100); // Short delay to ensure other handlers run first
+            });
+        }
+    });
+    
+    // Initial check for components and show table if needed
+    setTimeout(forceShowComponentTable, 500);
 });
                         
