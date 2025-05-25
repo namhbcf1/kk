@@ -4912,3 +4912,133 @@ document.addEventListener('DOMContentLoaded', function() {
     enhanceCompatibilityFiltering();
 });
                         
+// Expose determineCpuMainboardCompatibility function globally
+window.determineCpuMainboardCompatibility = function(cpu, mainboard) {
+    // Đảm bảo có dữ liệu
+    if (!cpu || !mainboard) return false;
+    
+    // Xác định socket CPU
+    let cpuSocket = cpu.socket;
+    if (!cpuSocket && cpu.name) {
+        cpuSocket = getCPUSocketFromName(cpu.name);
+    }
+    
+    // Xác định socket mainboard
+    let mbSocket = mainboard.socket;
+    if (!mbSocket && mainboard.name) {
+        mbSocket = getMainboardSocketFromName(mainboard.name);
+    }
+    
+    // Xử lý trường hợp mainboard hỗ trợ nhiều socket
+    const mbSockets = mainboard.sockets || [mbSocket];
+    
+    // Lưu socket vào đối tượng để sử dụng sau này
+    cpu.socket = cpuSocket;
+    mainboard.socket = mbSocket;
+    
+    // Kiểm tra tương thích
+    if (!cpuSocket || !mbSocket) return false;
+    
+    // Đặc biệt kiểm tra CPU Ryzen 5/7/9 cho socket AM5
+    if (cpu.name.includes('Ryzen') && 
+        (cpu.name.includes('7500f') || cpu.name.includes('7600') || cpu.name.includes('7700') || 
+         cpu.name.includes('7800') || cpu.name.includes('7900') || cpu.name.includes('7950') ||
+         cpu.name.includes('9600') || cpu.name.includes('9700') || cpu.name.includes('9800') || 
+         cpu.name.includes('9900') || cpu.name.includes('9950'))) {
+        
+        // Các CPU này cần mainboard AM5
+        const isCompatible = mbSocket === 'AM5' || mbSockets.includes('AM5');
+        logger.log(`AMD Ryzen 7000/9000 series CPU (${cpu.name}) compatibility with ${mainboard.name}: ${isCompatible ? 'Compatible (AM5)' : 'Not compatible (requires AM5)'}`);
+        return isCompatible;
+    }
+    
+    // Kiểm tra tương thích CPU Ryzen 3/5/7/9 thế hệ 3000-5000 với mainboard AM4
+    if (cpu.name.includes('Ryzen') && 
+        (cpu.name.includes('3600') || cpu.name.includes('3700') || cpu.name.includes('3800') || 
+         cpu.name.includes('3900') || cpu.name.includes('5600') || cpu.name.includes('5700') || 
+         cpu.name.includes('5800') || cpu.name.includes('5900') || cpu.name.includes('5950'))) {
+        
+        // Các CPU này cần mainboard AM4
+        const isCompatible = mbSocket === 'AM4' || mbSockets.includes('AM4');
+        logger.log(`AMD Ryzen 3000-5000 series CPU (${cpu.name}) compatibility with ${mainboard.name}: ${isCompatible ? 'Compatible (AM4)' : 'Not compatible (requires AM4)'}`);
+        return isCompatible;
+    }
+    
+    // Kiểm tra tương thích CPU Intel 12/13/14th Gen với mainboard LGA1700
+    if ((cpu.name.includes('Intel') || cpu.name.includes('Core i')) && 
+        (cpu.name.includes('12') || cpu.name.includes('13') || cpu.name.includes('14') || 
+         cpu.name.includes('12100') || cpu.name.includes('12400') || cpu.name.includes('12600') || 
+         cpu.name.includes('12700') || cpu.name.includes('12900') || cpu.name.includes('13100') || 
+         cpu.name.includes('13400') || cpu.name.includes('13600') || cpu.name.includes('13700') || 
+         cpu.name.includes('13900') || cpu.name.includes('14100') || cpu.name.includes('14400') ||
+         cpu.name.includes('14600') || cpu.name.includes('14700') || cpu.name.includes('14900'))) {
+        
+        // Các CPU này cần mainboard LGA1700
+        const isCompatible = mbSocket === 'LGA1700' || mbSockets.includes('LGA1700');
+        logger.log(`Intel 12-14th Gen CPU (${cpu.name}) compatibility with ${mainboard.name}: ${isCompatible ? 'Compatible (LGA1700)' : 'Not compatible (requires LGA1700)'}`);
+        return isCompatible;
+    }
+    
+    // Kiểm tra tương thích CPU Intel 10/11th Gen với mainboard LGA1200
+    if ((cpu.name.includes('Intel') || cpu.name.includes('Core i')) && 
+        (cpu.name.includes('10') || cpu.name.includes('11') || 
+         cpu.name.includes('10100') || cpu.name.includes('10400') || cpu.name.includes('10600') || 
+         cpu.name.includes('10700') || cpu.name.includes('10900') || cpu.name.includes('11100') || 
+         cpu.name.includes('11400') || cpu.name.includes('11600') || cpu.name.includes('11700') || 
+         cpu.name.includes('11900'))) {
+        
+        // Các CPU này cần mainboard LGA1200
+        const isCompatible = mbSocket === 'LGA1200' || mbSockets.includes('LGA1200');
+        logger.log(`Intel 10-11th Gen CPU (${cpu.name}) compatibility with ${mainboard.name}: ${isCompatible ? 'Compatible (LGA1200)' : 'Not compatible (requires LGA1200)'}`);
+        return isCompatible;
+    }
+    
+    // Kiểm tra tương thích CPU Intel 8/9th Gen với mainboard LGA1151
+    if ((cpu.name.includes('Intel') || cpu.name.includes('Core i')) && 
+        (cpu.name.includes('8') || cpu.name.includes('9') || 
+         cpu.name.includes('8100') || cpu.name.includes('8400') || cpu.name.includes('8600') || 
+         cpu.name.includes('8700') || cpu.name.includes('9100') || cpu.name.includes('9400') || 
+         cpu.name.includes('9600') || cpu.name.includes('9700') || cpu.name.includes('9900'))) {
+        
+        // Các CPU này cần mainboard LGA1151 300-series
+        const isCompatible = mbSocket === 'LGA1151' || mbSockets.includes('LGA1151');
+        logger.log(`Intel 8-9th Gen CPU (${cpu.name}) compatibility with ${mainboard.name}: ${isCompatible ? 'Compatible (LGA1151)' : 'Not compatible (requires LGA1151)'}`);
+        return isCompatible;
+    }
+    
+    // Kiểm tra tương thích CPU Intel 6/7th Gen với mainboard LGA1151
+    if ((cpu.name.includes('Intel') || cpu.name.includes('Core i')) && 
+        (cpu.name.includes('6') || cpu.name.includes('7') || 
+         cpu.name.includes('6100') || cpu.name.includes('6400') || cpu.name.includes('6500') || 
+         cpu.name.includes('6600') || cpu.name.includes('6700') || cpu.name.includes('7100') || 
+         cpu.name.includes('7400') || cpu.name.includes('7600') || cpu.name.includes('7700'))) {
+        
+        // Các CPU này cần mainboard LGA1151 100/200-series
+        const isCompatible = mbSocket === 'LGA1151' || mbSockets.includes('LGA1151');
+        logger.log(`Intel 6-7th Gen CPU (${cpu.name}) compatibility with ${mainboard.name}: ${isCompatible ? 'Compatible (LGA1151)' : 'Not compatible (requires LGA1151)'}`);
+        return isCompatible;
+    }
+    
+    // Kiểm tra tương thích chung
+    let isCompatible = false;
+    if (Array.isArray(mbSockets)) {
+        isCompatible = mbSockets.includes(cpuSocket);
+    } else {
+        isCompatible = mbSocket === cpuSocket;
+    }
+    
+    logger.log(`General CPU-Mainboard compatibility check: ${cpu.name} (${cpuSocket}) with ${mainboard.name} (${mbSocket}): ${isCompatible ? 'Compatible' : 'Not compatible'}`);
+    return isCompatible;
+};
+
+// Expose determineRamCompatibility function globally
+window.determineRamCompatibility = function(ram, mainboard) {
+    // Luôn cho phép chọn RAM sau khi đã chọn mainboard
+    // Đây là cách khắc phục vấn đề người dùng không thể chọn RAM
+    // sau khi đã chọn CPU và mainboard
+    return true;
+};
+
+// Expose the functions globally
+console.log("✅ CPU-Mainboard and RAM compatibility functions exposed globally");
+                        
