@@ -121,8 +121,31 @@ function updateRamOptionsBasedOnMainboard(mainboardKey) {
             Object.keys(window.ramData).forEach(ramKey => {
                 const ram = window.ramData[ramKey];
                 
-                // Kiểm tra tương thích dựa trên loại RAM
-                if (ram.type === memoryType) {
+                // Kiểm tra tương thích dựa trên loại RAM và mainboard
+                let ramCompatible = ram.type === memoryType;
+                
+                // Thêm kiểm tra đặc biệt cho một số loại mainboard
+                if (mainboard.name.includes('H610') || mainboard.name.includes('B660') || mainboard.name.includes('H510')) {
+                    // H610, B660, H510 chỉ hỗ trợ DDR4
+                    ramCompatible = ramCompatible && ram.type === 'DDR4';
+                }
+                
+                if (mainboard.name.includes('Z690') || mainboard.name.includes('Z790')) {
+                    // Kiểm tra phiên bản Z690/Z790 hỗ trợ loại RAM nào
+                    if (mainboard.name.includes('DDR4')) {
+                        ramCompatible = ramCompatible && ram.type === 'DDR4';
+                    } else if (mainboard.name.includes('DDR5')) {
+                        ramCompatible = ramCompatible && ram.type === 'DDR5';
+                    }
+                }
+                
+                // Kiểm tra cho AMD
+                if (mainboard.name.includes('B450') || mainboard.name.includes('B550') || mainboard.name.includes('X570')) {
+                    // B450, B550, X570 chỉ hỗ trợ DDR4
+                    ramCompatible = ramCompatible && ram.type === 'DDR4';
+                }
+                
+                if (ramCompatible) {
                     const option = document.createElement('option');
                     option.value = ramKey;
                     option.text = `${ram.name} - ${formatPrice(ram.price)} VNĐ`;
@@ -296,10 +319,32 @@ function filterMainboardsByCpu(cpuKey) {
                 const mainboard = window.mainboardData[mainboardKey];
                 const mbSockets = mainboard.sockets || [mainboard.socket];
                 
-                // Kiểm tra tương thích dựa trên socket
-                const isCompatible = Array.isArray(mbSockets) 
-                    ? mbSockets.includes(cpuSocket)
-                    : mbSockets === cpuSocket;
+                // Kiểm tra tương thích nghiêm ngặt dựa trên socket chính xác
+                let isCompatible = false;
+                
+                // Đảm bảo so sánh chính xác socket
+                if (Array.isArray(mbSockets)) {
+                    // Chỉ tương thích nếu có socket hoàn toàn giống nhau
+                    isCompatible = mbSockets.some(socket => socket.toUpperCase() === cpuSocket.toUpperCase());
+                } else {
+                    // So sánh string chính xác
+                    isCompatible = mbSockets.toUpperCase() === cpuSocket.toUpperCase();
+                }
+                
+                // Thêm kiểm tra đặc biệt cho AMD và Intel
+                if (cpuSocket.includes('AM4')) {
+                    // CPU AMD chỉ tương thích với mainboard AMD
+                    isCompatible = isCompatible && !mainboard.name.includes('H610') && 
+                                  !mainboard.name.includes('B660') && 
+                                  !mainboard.name.includes('Z690') &&
+                                  !mainboard.name.includes('LGA1700');
+                } else if (cpuSocket.includes('LGA1700')) {
+                    // CPU Intel chỉ tương thích với mainboard Intel
+                    isCompatible = isCompatible && !mainboard.name.includes('B450') && 
+                                  !mainboard.name.includes('B550') && 
+                                  !mainboard.name.includes('X570') &&
+                                  !mainboard.name.includes('AM4');
+                }
                 
                 if (isCompatible) {
                     const option = document.createElement('option');
@@ -1398,8 +1443,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function calculateTotalPriceAndSummary() {
-        if (!modalSummaryContent || !modalTotalPriceDisplay || !imagePreviewContainer) {
-            console.error("Missing modal elements");
+        // Tìm modal elements
+        const summaryModal = document.getElementById('summary-modal');
+        const modalSummaryContent = document.getElementById('modal-components-list');
+        const modalTotalPriceDisplay = document.getElementById('modal-total-price');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        
+        if (!summaryModal || !modalSummaryContent || !modalTotalPriceDisplay || !imagePreviewContainer) {
+            console.error("Missing modal elements:", {
+                summaryModal: !!summaryModal,
+                modalSummaryContent: !!modalSummaryContent,
+                modalTotalPriceDisplay: !!modalTotalPriceDisplay,
+                imagePreviewContainer: !!imagePreviewContainer
+            });
+            
+            // Tạo modal nếu không tồn tại
+            if (!summaryModal) {
+                createModalElements();
+                return calculateTotalPriceAndSummary(); // Gọi lại hàm sau khi tạo modal
+            }
             return;
         }
 
@@ -1407,11 +1469,37 @@ document.addEventListener('DOMContentLoaded', function () {
         const total = calculationResult.total;         // Extract total
         const selectedComponentsDetails = calculationResult.selectedComponentsDetails; // Extract selectedComponentsDetails
 
+        // Đảm bảo modal hiển thị ở giữa màn hình
+        summaryModal.style.display = 'block';
+        summaryModal.style.position = 'fixed';
+        summaryModal.style.zIndex = '9999';
+        summaryModal.style.left = '0';
+        summaryModal.style.top = '0';
+        summaryModal.style.width = '100%';
+        summaryModal.style.height = '100%';
+        summaryModal.style.overflow = 'auto';
+        summaryModal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        
+        // Đảm bảo modal content có style phù hợp
+        const modalContent = summaryModal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.backgroundColor = '#fff';
+            modalContent.style.margin = '50px auto';
+            modalContent.style.padding = '20px';
+            modalContent.style.width = '80%';
+            modalContent.style.maxWidth = '900px';
+            modalContent.style.borderRadius = '5px';
+            modalContent.style.boxShadow = '0 0 20px rgba(0,0,0,0.3)';
+        }
+        
         modalSummaryContent.innerHTML = ''; // Xóa nội dung cũ của modal
         imagePreviewContainer.innerHTML = ''; // Xóa ảnh cũ nếu có
 
-        // Ẩn phần hiển thị text tổng tiền trong modal (chỉ hiển thị bảng)
-        modalTotalPriceDisplay.style.display = 'none';
+        // Hiển thị phần tổng tiền
+        modalTotalPriceDisplay.style.display = 'block';
+        modalTotalPriceDisplay.style.marginTop = '20px';
+        modalTotalPriceDisplay.style.fontWeight = 'bold';
+        modalTotalPriceDisplay.style.fontSize = '18px';
 
         // Tạo bảng HTML để hiển thị thông tin chi tiết
         const table = document.createElement('table');
@@ -2886,12 +2974,30 @@ document.addEventListener('DOMContentLoaded', function () {
     function showConfigDetailModal(configData) {
         console.log('Enhanced showConfigDetailModal called - displaying configuration table');
         
-        // Hiển thị bảng chi tiết cấu hình
+        // Kiểm tra và tạo modal nếu chưa tồn tại
+        let summaryModal = document.getElementById('summary-modal');
+        if (!summaryModal) {
+            console.log('Modal not found, creating it');
+            summaryModal = createModalElements();
+        }
+        
+        if (!summaryModal) {
+            console.error('Failed to create or find modal');
+            return;
+        }
+        
+        // Đảm bảo modal hiển thị
+        summaryModal.style.display = 'block';
+        
+        // Cập nhật dữ liệu trong modal
+        if (typeof calculateTotalPriceAndSummary === 'function') {
+            calculateTotalPriceAndSummary();
+        }
+        
+        // Hiển thị bảng chi tiết cấu hình nếu có
         const configTable = document.getElementById('config-table');
         if (configTable) {
             configTable.style.display = 'block';
-            // Cuộn trang đến bảng cấu hình
-            configTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
             
             // Cập nhật hình ảnh và thông tin trong bảng nếu có hàm updateConfigTableImages
             if (typeof window.updateConfigTableImages === 'function') {
@@ -2901,15 +3007,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.error('Error updating table images:', error);
                 }
             }
-        }
-        
-        // Find modal
-        const modal = document.querySelector('.modal');
-        const modalContent = modal ? modal.querySelector('.modal-content') : null;
-        
-        if (!modal || !modalContent) {
-            console.error('Modal elements not found');
-            return;
         }
         
         // Prepare content
@@ -4062,5 +4159,199 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(configButton);
         }
     }, 1000);
+});
+                        
+// Hàm tạo modal elements nếu chưa tồn tại
+function createModalElements() {
+    console.log('Creating modal elements');
+    
+    // Kiểm tra xem modal đã tồn tại chưa
+    if (document.getElementById('summary-modal')) return;
+    
+    // Tạo modal container
+    const summaryModal = document.createElement('div');
+    summaryModal.id = 'summary-modal';
+    summaryModal.className = 'modal';
+    summaryModal.style.display = 'none';
+    summaryModal.style.position = 'fixed';
+    summaryModal.style.zIndex = '9999';
+    summaryModal.style.left = '0';
+    summaryModal.style.top = '0';
+    summaryModal.style.width = '100%';
+    summaryModal.style.height = '100%';
+    summaryModal.style.overflow = 'auto';
+    summaryModal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    
+    // Tạo modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalContent.style.backgroundColor = '#fff';
+    modalContent.style.margin = '50px auto';
+    modalContent.style.padding = '20px';
+    modalContent.style.width = '80%';
+    modalContent.style.maxWidth = '900px';
+    modalContent.style.borderRadius = '5px';
+    modalContent.style.boxShadow = '0 0 20px rgba(0,0,0,0.3)';
+    
+    // Tạo modal header
+    const modalHeader = document.createElement('div');
+    modalHeader.className = 'modal-header';
+    modalHeader.style.borderBottom = '1px solid #eee';
+    modalHeader.style.padding = '10px 0';
+    modalHeader.style.marginBottom = '20px';
+    modalHeader.style.display = 'flex';
+    modalHeader.style.justifyContent = 'space-between';
+    modalHeader.style.alignItems = 'center';
+    
+    // Tạo tiêu đề
+    const modalTitle = document.createElement('h2');
+    modalTitle.innerHTML = '<i class="fas fa-clipboard-list"></i> Cấu hình chi tiết';
+    modalTitle.style.margin = '0';
+    modalTitle.style.fontSize = '24px';
+    modalTitle.style.color = '#333';
+    
+    // Tạo nút đóng
+    const closeButton = document.createElement('span');
+    closeButton.className = 'close-modal';
+    closeButton.innerHTML = '&times;';
+    closeButton.style.fontSize = '28px';
+    closeButton.style.fontWeight = 'bold';
+    closeButton.style.cursor = 'pointer';
+    closeButton.style.color = '#333';
+    
+    // Thêm sự kiện click cho nút đóng
+    closeButton.addEventListener('click', function() {
+        summaryModal.style.display = 'none';
+        // Đánh dấu là người dùng đã đóng modal
+        window.userClosedConfigModal = true;
+    });
+    
+    // Tạo modal body
+    const modalBody = document.createElement('div');
+    modalBody.className = 'modal-body';
+    
+    // Tạo container cho danh sách thành phần
+    const componentsList = document.createElement('div');
+    componentsList.id = 'modal-components-list';
+    
+    // Tạo container cho tổng giá
+    const totalPrice = document.createElement('div');
+    totalPrice.id = 'modal-total-price';
+    totalPrice.textContent = 'Tổng cộng: 0 VNĐ';
+    totalPrice.style.marginTop = '20px';
+    totalPrice.style.fontWeight = 'bold';
+    totalPrice.style.fontSize = '18px';
+    
+    // Tạo container cho hình ảnh xem trước
+    const imagePreview = document.createElement('div');
+    imagePreview.id = 'image-preview-container';
+    
+    // Tạo container cho các tùy chọn chia sẻ
+    const shareOptions = document.createElement('div');
+    shareOptions.className = 'share-options';
+    shareOptions.style.marginTop = '20px';
+    shareOptions.style.display = 'flex';
+    shareOptions.style.gap = '10px';
+    shareOptions.style.justifyContent = 'center';
+    
+    // Tạo các nút chia sẻ
+    const shareFacebook = document.createElement('button');
+    shareFacebook.id = 'share-facebook';
+    shareFacebook.className = 'share-button';
+    shareFacebook.innerHTML = '<i class="fab fa-facebook"></i> Chia sẻ Facebook';
+    shareFacebook.style.padding = '10px 15px';
+    shareFacebook.style.backgroundColor = '#3b5998';
+    shareFacebook.style.color = 'white';
+    shareFacebook.style.border = 'none';
+    shareFacebook.style.borderRadius = '5px';
+    shareFacebook.style.cursor = 'pointer';
+    
+    const copyLink = document.createElement('button');
+    copyLink.id = 'copy-link';
+    copyLink.className = 'share-button';
+    copyLink.innerHTML = '<i class="fas fa-link"></i> Sao chép liên kết';
+    copyLink.style.padding = '10px 15px';
+    copyLink.style.backgroundColor = '#607d8b';
+    copyLink.style.color = 'white';
+    copyLink.style.border = 'none';
+    copyLink.style.borderRadius = '5px';
+    copyLink.style.cursor = 'pointer';
+    
+    const downloadConfig = document.createElement('button');
+    downloadConfig.id = 'download-config';
+    downloadConfig.className = 'share-button luu-cau-hinh';
+    downloadConfig.innerHTML = '<i class="fas fa-download"></i> Tải cấu hình';
+    downloadConfig.style.padding = '10px 15px';
+    downloadConfig.style.backgroundColor = '#4caf50';
+    downloadConfig.style.color = 'white';
+    downloadConfig.style.border = 'none';
+    downloadConfig.style.borderRadius = '5px';
+    downloadConfig.style.cursor = 'pointer';
+    
+    // Xây dựng cấu trúc DOM
+    modalHeader.appendChild(modalTitle);
+    modalHeader.appendChild(closeButton);
+    
+    shareOptions.appendChild(shareFacebook);
+    shareOptions.appendChild(copyLink);
+    shareOptions.appendChild(downloadConfig);
+    
+    modalBody.appendChild(componentsList);
+    modalBody.appendChild(totalPrice);
+    modalBody.appendChild(imagePreview);
+    modalBody.appendChild(shareOptions);
+    
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    
+    summaryModal.appendChild(modalContent);
+    
+    // Thêm modal vào body
+    document.body.appendChild(summaryModal);
+    
+    console.log('Modal elements created successfully');
+    
+    return summaryModal;
+}
+                        
+// Thêm nút hiển thị bảng cấu hình lớn ngay khi trang tải xong
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        // Kiểm tra xem nút đã tồn tại chưa
+        if (!document.getElementById('show-config-modal-button')) {
+            // Tạo nút hiển thị bảng cấu hình
+            const showModalButton = document.createElement('button');
+            showModalButton.id = 'show-config-modal-button';
+            showModalButton.innerText = 'HIỂN THỊ BẢNG CẤU HÌNH CHI TIẾT';
+            showModalButton.style.position = 'fixed';
+            showModalButton.style.bottom = '30px';
+            showModalButton.style.left = '50%';
+            showModalButton.style.transform = 'translateX(-50%)';
+            showModalButton.style.padding = '15px 30px';
+            showModalButton.style.fontSize = '18px';
+            showModalButton.style.fontWeight = 'bold';
+            showModalButton.style.backgroundColor = '#4CAF50';
+            showModalButton.style.color = 'white';
+            showModalButton.style.border = 'none';
+            showModalButton.style.borderRadius = '5px';
+            showModalButton.style.cursor = 'pointer';
+            showModalButton.style.zIndex = '1000';
+            showModalButton.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+            
+            // Thêm sự kiện click
+            showModalButton.addEventListener('click', function() {
+                // Gọi hàm hiển thị bảng cấu hình
+                if (typeof window.showConfigDetailModal === 'function') {
+                    window.userClosedConfigModal = false; // Reset trạng thái đóng
+                    window.showConfigDetailModal();
+                }
+            });
+            
+            // Thêm nút vào body
+            document.body.appendChild(showModalButton);
+            
+            console.log('Added show config modal button');
+        }
+    }, 500);
 });
                         
