@@ -87,6 +87,22 @@ function updateRamOptionsBasedOnMainboard(mainboardKey) {
         const mainboard = window.mainboardData[mainboardKey];
         const memoryType = mainboard.memoryType; // Lấy loại RAM từ mainboard (DDR3, DDR4, DDR5)
         
+        // Cập nhật thông tin RAM type trên UI
+        const socketInfoDiv = document.getElementById('socket-info');
+        if (socketInfoDiv) {
+            // Giữ nguyên phần CPU và Mainboard, chỉ cập nhật RAM Type
+            const currentText = socketInfoDiv.innerHTML;
+            const ramTypeIndex = currentText.indexOf('RAM Type:');
+            if (ramTypeIndex !== -1) {
+                // Đã có RAM Type, cập nhật
+                const beforeRamType = currentText.substring(0, ramTypeIndex);
+                socketInfoDiv.innerHTML = `${beforeRamType}RAM Type: ${memoryType}`;
+            } else {
+                // Chưa có RAM Type, thêm mới
+                socketInfoDiv.innerHTML = `${currentText} | RAM Type: ${memoryType}`;
+            }
+        }
+        
         console.log(`Updating RAM options based on mainboard ${mainboardKey} with memory type: ${memoryType}`);
         
         // Lưu giá trị RAM hiện tại
@@ -232,6 +248,34 @@ function filterMainboardsByCpu(cpuKey) {
         
         const cpu = window.cpuData[cpuKey];
         const cpuSocket = cpu.socket;
+        
+        // Hiển thị thông tin socket trên UI
+        const socketInfoDiv = document.getElementById('socket-info');
+        if (!socketInfoDiv) {
+            // Tạo div hiển thị thông tin socket nếu chưa có
+            const newSocketInfoDiv = document.createElement('div');
+            newSocketInfoDiv.id = 'socket-info';
+            newSocketInfoDiv.style.backgroundColor = '#e3f2fd';
+            newSocketInfoDiv.style.padding = '10px';
+            newSocketInfoDiv.style.borderRadius = '5px';
+            newSocketInfoDiv.style.marginBottom = '15px';
+            newSocketInfoDiv.style.fontSize = '14px';
+            newSocketInfoDiv.style.fontWeight = 'bold';
+            
+            // Chèn vào trước dòng đầu tiên của component grid
+            const componentsGrid = document.querySelector('.components-grid') || document.querySelector('.component-container');
+            if (componentsGrid && componentsGrid.firstChild) {
+                componentsGrid.insertBefore(newSocketInfoDiv, componentsGrid.firstChild);
+            } else if (componentsGrid) {
+                componentsGrid.appendChild(newSocketInfoDiv);
+            }
+        }
+        
+        // Cập nhật thông tin socket
+        const socketInfoDivUpdated = document.getElementById('socket-info');
+        if (socketInfoDivUpdated) {
+            socketInfoDivUpdated.innerHTML = `CPU Socket: ${cpuSocket} | Mainboard Socket: ${cpuSocket} | RAM Type: ${cpu.memoryType || 'DDR4'}`;
+        }
         
         console.log(`Filtering mainboards by CPU socket: ${cpuSocket}`);
         
@@ -3309,17 +3353,93 @@ window.updateComponentPrices = updateComponentPrices;
 
 // Socket compatibility check function
 function checkSocketCompatibility(cpuKey, mainboardKey) {
-    // Redirect to the original checkSocketCompatibility function defined earlier
     try {
-        // This function is intended to reference the first checkSocketCompatibility function
-        // defined at lines ~1205-1263, so we just call that one which is accessible through the window object
-        if (window.originalCheckSocketCompatibility) {
-            return window.originalCheckSocketCompatibility(cpuKey, mainboardKey);
+        const socketMessage = document.getElementById('socket-message');
+        if (!socketMessage) {
+            // Tạo message div nếu chưa tồn tại
+            const newSocketMessage = document.createElement('div');
+            newSocketMessage.id = 'socket-message';
+            newSocketMessage.style.padding = '10px';
+            newSocketMessage.style.borderRadius = '5px';
+            newSocketMessage.style.margin = '10px 0';
+            newSocketMessage.style.fontWeight = 'bold';
+            
+            // Tìm vị trí để chèn
+            const componentsGrid = document.querySelector('.components-grid') || document.querySelector('.component-container');
+            const socketInfo = document.getElementById('socket-info');
+            
+            if (componentsGrid) {
+                if (socketInfo) {
+                    componentsGrid.insertBefore(newSocketMessage, socketInfo.nextSibling);
+                } else {
+                    componentsGrid.insertBefore(newSocketMessage, componentsGrid.firstChild);
+                }
+            }
+        }
+        
+        if (!cpuKey || !mainboardKey || !window.cpuData || !window.cpuData[cpuKey] || !window.mainboardData || !window.mainboardData[mainboardKey]) {
+            // Ẩn thông báo nếu không đủ dữ liệu
+            const socketMessageUpdated = document.getElementById('socket-message');
+            if (socketMessageUpdated) socketMessageUpdated.style.display = 'none';
+            return false;
+        }
+
+        const cpu = window.cpuData[cpuKey];
+        const mainboard = window.mainboardData[mainboardKey];
+        
+        // Lấy thông tin socket từ dữ liệu thực tế
+        const cpuSocket = cpu.socket;
+        const mbSockets = mainboard.sockets || [mainboard.socket]; // Hỗ trợ cả trường hợp sockets là mảng và socket là string
+        
+        console.log(`Checking compatibility: CPU socket = ${cpuSocket}, Mainboard sockets = ${JSON.stringify(mbSockets)}`);
+        
+        // Kiểm tra xem socket CPU có được hỗ trợ bởi mainboard không
+        const isCompatible = Array.isArray(mbSockets) 
+            ? mbSockets.includes(cpuSocket)
+            : mbSockets === cpuSocket;
+        
+        // Lấy hoặc tạo socket message element
+        const socketMessageElement = document.getElementById('socket-message');
+        
+        if (!isCompatible) {
+            if (socketMessageElement) {
+                socketMessageElement.innerHTML = `<strong>Cảnh báo:</strong> CPU (${cpuSocket}) không tương thích với mainboard (${Array.isArray(mbSockets) ? mbSockets.join(', ') : mbSockets}). Vui lòng chọn lại.`;
+                socketMessageElement.style.display = 'block';
+                socketMessageElement.style.color = '#e74c3c';
+                socketMessageElement.style.backgroundColor = '#fadbd8';
+            }
+            
+            // Hiển thị cảnh báo và log cho debug
+            console.warn(`Socket incompatibility detected: CPU ${cpuKey} (${cpuSocket}) is not compatible with mainboard ${mainboardKey} (${Array.isArray(mbSockets) ? mbSockets.join(', ') : mbSockets})`);
+            
+            // Highlight các dropdown có vấn đề
+            const cpuDropdown = document.getElementById('cpu');
+            const mainboardDropdown = document.getElementById('mainboard');
+            
+            if (cpuDropdown) cpuDropdown.style.borderColor = '#e74c3c';
+            if (mainboardDropdown) mainboardDropdown.style.borderColor = '#e74c3c';
+            
+            return false;
         } else {
-            console.error('Original checkSocketCompatibility function not available');
+            if (socketMessageElement) {
+                socketMessageElement.style.display = 'none';
+            }
+            
+            // Remove highlight nếu có
+            const cpuDropdown = document.getElementById('cpu');
+            const mainboardDropdown = document.getElementById('mainboard');
+            
+            if (cpuDropdown) cpuDropdown.style.borderColor = '';
+            if (mainboardDropdown) mainboardDropdown.style.borderColor = '';
+            
+            // Sau khi CPU và mainboard đã tương thích, thiết lập giới hạn RAM
+            updateRamOptionsBasedOnMainboard(mainboardKey);
+            
+            return true;
         }
     } catch (error) {
-        console.error('Error redirecting to original checkSocketCompatibility:', error);
+        console.error('Error checking socket compatibility:', error);
+        return false;
     }
 }
 
@@ -3791,6 +3911,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const componentsContainer = document.querySelector('.components-grid') || document.querySelector('.component-container');
         if (!componentsContainer) return;
         
+        // Kiểm tra nếu nút đã tồn tại để tránh trùng lặp
+        if (document.getElementById('show-config-detail-button')) return;
+        
         // Tạo nút
         const showConfigButton = document.createElement('button');
         showConfigButton.id = 'show-config-detail-button';
@@ -3821,6 +3944,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Hiển thị bảng cấu hình
                 if (typeof window.showConfigDetailModal === 'function') {
                     window.showConfigDetailModal();
+                } else {
+                    // Fallback: gọi hàm calculateTotalPriceAndSummary nếu có
+                    if (typeof calculateTotalPriceAndSummary === 'function') {
+                        calculateTotalPriceAndSummary();
+                    }
                 }
             } else {
                 // Hiển thị thông báo nếu chưa chọn đủ thành phần
@@ -3835,6 +3963,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Tạo nút khi trang đã tải xong
     setTimeout(createShowConfigButton, 500);
+    
+    // Theo dõi các thay đổi DOM để thêm nút khi cần
+    const observer = new MutationObserver(function(mutations) {
+        if (!document.getElementById('show-config-detail-button')) {
+            createShowConfigButton();
+        }
+    });
+    
+    // Bắt đầu quan sát DOM
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
     
     // Rest of existing code...
 });
@@ -3851,6 +3992,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Đảm bảo rằng các thành phần đã được cập nhật trước khi hiển thị bảng
             setTimeout(() => {
+                // Tính tổng giá và hiển thị thông tin
+                if (typeof calculateTotalPriceAndSummary === 'function') {
+                    calculateTotalPriceAndSummary();
+                }
+                
+                // Hiển thị bảng chi tiết
                 if (typeof window.showConfigDetailModal === 'function') {
                     window.showConfigDetailModal();
                 }
@@ -3858,5 +4005,62 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         console.log('Added listener to calculate button for showing config table');
     }
+    
+    // Đảm bảo nút hiển thị bảng cấu hình chi tiết luôn được thêm vào
+    setTimeout(function() {
+        // Tìm vùng chọn linh kiện
+        const componentsArea = document.querySelector('.components-selection') || 
+                              document.querySelector('.components-grid') || 
+                              document.querySelector('.component-container');
+        
+        if (componentsArea && !document.getElementById('config-detail-button')) {
+            // Tạo nút hiển thị bảng cấu hình nổi bật
+            const configButton = document.createElement('button');
+            configButton.id = 'config-detail-button';
+            configButton.textContent = '👉 XEM BẢNG CẤU HÌNH CHI TIẾT 👈';
+            configButton.style.position = 'sticky';
+            configButton.style.bottom = '20px';
+            configButton.style.left = '50%';
+            configButton.style.transform = 'translateX(-50%)';
+            configButton.style.zIndex = '1000';
+            configButton.style.padding = '15px 25px';
+            configButton.style.fontSize = '16px';
+            configButton.style.fontWeight = 'bold';
+            configButton.style.backgroundColor = '#4CAF50';
+            configButton.style.color = 'white';
+            configButton.style.border = 'none';
+            configButton.style.borderRadius = '5px';
+            configButton.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+            configButton.style.cursor = 'pointer';
+            configButton.style.animation = 'pulse 2s infinite';
+            
+            // Thêm style cho animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0% { transform: translateX(-50%) scale(1); }
+                    50% { transform: translateX(-50%) scale(1.05); }
+                    100% { transform: translateX(-50%) scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Thêm sự kiện click
+            configButton.addEventListener('click', function() {
+                // Reset trạng thái đóng bảng
+                window.userClosedConfigModal = false;
+                
+                // Hiển thị bảng cấu hình
+                if (typeof window.showConfigDetailModal === 'function') {
+                    window.showConfigDetailModal();
+                } else if (typeof calculateTotalPriceAndSummary === 'function') {
+                    calculateTotalPriceAndSummary();
+                }
+            });
+            
+            // Thêm nút vào trang
+            document.body.appendChild(configButton);
+        }
+    }, 1000);
 });
                         
