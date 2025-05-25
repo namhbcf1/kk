@@ -385,12 +385,12 @@ if (typeof window !== 'undefined') {
     console.log('Enhanced auto-config functions registered successfully');
 }
 
-// Kiểm tra và chạy tự động khi trang tải xong
+// Khi trang tải xong, chỉ đăng ký sự kiện, không tự động chọn cấu hình
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing enhanced auto-config helper');
     
-    // Kiểm tra và chạy tự động chọn cấu hình nếu đủ 3 tiêu chí
-    setTimeout(checkAndRunAutoSelectEnhanced, 1500);
+    // Không tự động chọn cấu hình khi trang tải xong
+    // setTimeout(checkAndRunAutoSelectEnhanced, 1500); // Đã tắt tính năng tự động chọn
     
     // Thêm event listeners cho các thay đổi
     const gameGenre = document.getElementById('game-genre');

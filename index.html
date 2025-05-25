@@ -1079,7 +1079,7 @@
                 </button>
             </div>
             
-            <div class="config-table fixed-bottom">
+            <div class="config-table fixed-bottom" id="config-table" style="display:none;">
                 <table>
                     <thead>
                         <tr>
@@ -1516,6 +1516,7 @@
                 console.log('Component table initialized with empty values');
                 
                 // Kích hoạt tự động chọn cấu hình sau khi trang được tải
+                /* Đã tắt tính năng tự động chọn cấu hình khi tải trang
                 setTimeout(() => {
                     const gameGenre = document.getElementById('game-genre').value;
                     const budget = parseInt(document.getElementById('budget-range').value);
@@ -1534,6 +1535,7 @@
                         }
                     }
                 }, 1000);
+                */
             } catch (error) {
                 console.error('Error during initialization:', error);
             }
@@ -1910,6 +1912,30 @@
                 });
                 
                 console.log("✅ Budget change handler added");
+            }
+            
+            // Thêm xử lý để hiển thị bảng cấu hình khi nhấn nút XEM CHI TIẾT VÀ ĐÁNH GIÁ
+            const calculateButton = document.getElementById('calculate-button');
+            const configTable = document.getElementById('config-table');
+            
+            if (calculateButton && configTable) {
+                calculateButton.addEventListener('click', function() {
+                    // Kiểm tra xem có linh kiện nào được chọn không
+                    const cpu = document.getElementById('cpu').value;
+                    const vga = document.getElementById('vga').value;
+                    
+                    if (cpu || vga) {
+                        // Có ít nhất một linh kiện được chọn, hiển thị bảng
+                        configTable.style.display = 'block';
+                        console.log('Showing component config table');
+                    } else {
+                        // Không có linh kiện nào được chọn, thông báo cho người dùng
+                        alert('Vui lòng chọn ít nhất một linh kiện trước khi xem chi tiết.');
+                        console.log('No components selected, not showing table');
+                    }
+                });
+                
+                console.log("✅ Calculate button handler added");
             }
         });
     </script>
