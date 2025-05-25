@@ -212,6 +212,17 @@ const vgaData = {
         condition: "New",
         score: 8
     },
+    "4060": {
+        name: "NVIDIA GeForce RTX 4060",
+        price: 8000000,
+        image: "https://via.placeholder.com/150x150.png?text=RTX+4060",
+        brand: "NVIDIA",
+        warranty: "36 tháng",
+        memory: "8GB GDDR6",
+        bus: "PCI-Express 4.0",
+        condition: "New",
+        score: 8
+    },
     "4070": {
         name: "NVIDIA GeForce RTX 4070",
         price: 15000000,
@@ -275,6 +286,18 @@ const ramData = {
         condition: "New",
         score: 6
     },
+    "cosair-16": {
+        name: "Corsair Vengeance LPX 16GB (2x8GB) DDR4 3600MHz",
+        price: 1300000,
+        image: "https://via.placeholder.com/150x150.png?text=RAM+16GB+DDR4-3600",
+        brand: "Corsair",
+        warranty: "Lifetime",
+        type: "DDR4",
+        capacity: "16GB (2x8GB)",
+        speed: "3600MHz",
+        condition: "New",
+        score: 6
+    },
     "sstc-16": {
         name: "Team T-FORCE VULCAN Z 16GB (2x8GB) DDR4 3600MHz",
         price: 1300000,
@@ -298,6 +321,42 @@ const ramData = {
         speed: "3600MHz",
         condition: "New",
         score: 8
+    },
+    "cosair-32": {
+        name: "Corsair Vengeance RGB PRO 32GB (2x16GB) DDR4 3600MHz",
+        price: 2500000,
+        image: "https://via.placeholder.com/150x150.png?text=RAM+32GB+Corsair",
+        brand: "Corsair",
+        warranty: "Lifetime",
+        type: "DDR4",
+        capacity: "32GB (2x16GB)",
+        speed: "3600MHz",
+        condition: "New",
+        score: 8
+    },
+    "tridentz-16-6000": {
+        name: "G.SKILL Trident Z5 RGB 16GB (2x8GB) DDR5 6000MHz",
+        price: 2700000,
+        image: "https://via.placeholder.com/150x150.png?text=RAM+16GB+DDR5",
+        brand: "G.SKILL",
+        warranty: "Lifetime",
+        type: "DDR5",
+        capacity: "16GB (2x8GB)",
+        speed: "6000MHz",
+        condition: "New",
+        score: 9
+    },
+    "tridentz-32-6000": {
+        name: "G.SKILL Trident Z5 RGB 32GB (2x16GB) DDR5 6000MHz",
+        price: 4500000,
+        image: "https://via.placeholder.com/150x150.png?text=RAM+32GB+DDR5",
+        brand: "G.SKILL",
+        warranty: "Lifetime",
+        type: "DDR5",
+        capacity: "32GB (2x16GB)",
+        speed: "6000MHz",
+        condition: "New",
+        score: 10
     }
 };
 
@@ -316,6 +375,19 @@ const ssdData = {
         condition: "New",
         score: 3
     },
+    "sstc-256": {
+        name: "Team GX2 256GB SATA SSD",
+        price: 550000,
+        image: "https://via.placeholder.com/150x150.png?text=SSD+256GB",
+        brand: "Team Group",
+        warranty: "36 tháng",
+        capacity: "256GB",
+        interface: "SATA",
+        read_speed: "530 MB/s",
+        write_speed: "480 MB/s",
+        condition: "New",
+        score: 3
+    },
     "crucial-500": {
         name: "Crucial P2 500GB NVMe PCIe SSD",
         price: 1050000,
@@ -328,6 +400,19 @@ const ssdData = {
         write_speed: "1800 MB/s",
         condition: "New",
         score: 5
+    },
+    "crucial-1tb": {
+        name: "Crucial P3 1TB NVMe PCIe SSD",
+        price: 1800000,
+        image: "https://via.placeholder.com/150x150.png?text=SSD+1TB",
+        brand: "Crucial",
+        warranty: "60 tháng",
+        capacity: "1TB",
+        interface: "NVMe PCIe",
+        read_speed: "3500 MB/s",
+        write_speed: "3000 MB/s",
+        condition: "New",
+        score: 7
     },
     "samsung-1TB": {
         name: "Samsung 970 EVO Plus 1TB NVMe PCIe SSD",
@@ -398,6 +483,19 @@ const caseData = {
         condition: "New",
         score: 6
     },
+    "GA": {
+        name: "GALAX REVOLUTION-02",
+        price: 1650000,
+        image: "https://via.placeholder.com/150x150.png?text=GALAX+REV-02",
+        brand: "GALAX",
+        warranty: "12 tháng",
+        size: "Mid Tower",
+        material: "Steel / Tempered Glass",
+        fans_included: 3,
+        rgb: "Yes",
+        condition: "New",
+        score: 6
+    },
     "GA3": {
         name: "GALAX REVOLUTION-03",
         price: 1850000,
@@ -464,6 +562,18 @@ const cpuCoolerData = {
         condition: "New",
         score: 7
     },
+    "TMR120SE": {
+        name: "Thermaltake TOUGHLIQUID 120 ARGB Sync",
+        price: 1950000,
+        image: "https://via.placeholder.com/150x150.png?text=Thermaltake+AIO",
+        brand: "Thermaltake",
+        warranty: "36 tháng",
+        tdp: "280W",
+        fan_speed: "500-1800 RPM",
+        rgb: "Yes",
+        condition: "New",
+        score: 8
+    },
     "NZXT-X63": {
         name: "NZXT Kraken X63",
         price: 3600000,
@@ -516,6 +626,18 @@ const psuData = {
         condition: "New",
         score: 5
     },
+    "DT660": {
+        name: "Deepcool PQ660 660W",
+        price: 1600000,
+        image: "https://via.placeholder.com/150x150.png?text=Deepcool+660W",
+        brand: "Deepcool",
+        warranty: "60 tháng",
+        power: "660W",
+        certification: "80+ Bronze",
+        modular: "No",
+        condition: "New",
+        score: 6
+    },
     "VSP750": {
         name: "Corsair RM750 750W",
         price: 2250000,
@@ -527,6 +649,18 @@ const psuData = {
         modular: "Full",
         condition: "New",
         score: 8
+    },
+    "COSAIR850": {
+        name: "Corsair RM850x 850W",
+        price: 3200000,
+        image: "https://via.placeholder.com/150x150.png?text=Corsair+850W",
+        brand: "Corsair",
+        warranty: "120 tháng",
+        power: "850W",
+        certification: "80+ Gold",
+        modular: "Full",
+        condition: "New",
+        score: 9
     },
     "corsair-850": {
         name: "Corsair RM850x 850W",
