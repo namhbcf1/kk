@@ -5033,10 +5033,91 @@ window.determineCpuMainboardCompatibility = function(cpu, mainboard) {
 
 // Expose determineRamCompatibility function globally
 window.determineRamCompatibility = function(ram, mainboard) {
-    // Luôn cho phép chọn RAM sau khi đã chọn mainboard
-    // Đây là cách khắc phục vấn đề người dùng không thể chọn RAM
-    // sau khi đã chọn CPU và mainboard
-    return true;
+    // Kiểm tra RAM và mainboard có tồn tại không
+    if (!ram || !mainboard) return true;
+    
+    // Xác định loại RAM từ tên nếu chưa có
+    if (!ram.type) {
+        if (ram.name.includes('DDR5') || 
+            ram.name.includes('Bus 6000') || 
+            ram.name.includes('Bus 5200') ||
+            ram.name.includes('TridentZ') && !ram.name.includes('DDR4')) {
+            ram.type = 'DDR5';
+        }
+        else if (ram.name.includes('DDR4') || 
+                ram.name.includes('Bus 3200') || 
+                ram.name.includes('LPX') || 
+                ram.name.includes('Fury') ||
+                ram.name.includes('Vengeance') && !ram.name.includes('5200')) {
+            ram.type = 'DDR4';
+        }
+        else if (ram.name.includes('DDR3') || 
+                ram.name.includes('1600MHz')) {
+            ram.type = 'DDR3';
+        }
+        else {
+            // Dự đoán dựa trên giá cả nếu không thể nhận dạng
+            const price = ram.price || 0;
+            if (price > 1000000) ram.type = 'DDR5';
+            else if (price > 300000) ram.type = 'DDR4';
+            else ram.type = 'DDR3';
+        }
+        logger.log(`Detected RAM type for ${ram.name}: ${ram.type}`);
+    }
+    
+    // Xác định loại RAM hỗ trợ bởi mainboard nếu chưa có
+    if (!mainboard.memoryType) {
+        if (mainboard.socket === 'AM5') {
+            mainboard.memoryType = 'DDR5';
+        } 
+        else if (mainboard.socket === 'AM4') {
+            mainboard.memoryType = 'DDR4';
+        }
+        else if (mainboard.socket === 'LGA1700') {
+            // LGA1700 hỗ trợ cả DDR4 và DDR5 tùy model
+            if (mainboard.name.includes('D4') || mainboard.name.includes('DDR4')) {
+                mainboard.memoryType = 'DDR4';
+            } else {
+                mainboard.memoryType = 'DDR5';
+            }
+        }
+        else if (mainboard.socket === 'LGA1200' || mainboard.socket === 'LGA1151') {
+            mainboard.memoryType = 'DDR4';
+        }
+        else if (mainboard.socket === 'LGA1150' || mainboard.socket === 'LGA1155') {
+            mainboard.memoryType = 'DDR3';
+        }
+        else {
+            // Xác định từ chipset trong tên
+            if (mainboard.name.includes('B650') || mainboard.name.includes('X670')) {
+                mainboard.memoryType = 'DDR5';
+            }
+            else if (mainboard.name.includes('B550') || mainboard.name.includes('B450') || 
+                    mainboard.name.includes('X570')) {
+                mainboard.memoryType = 'DDR4';
+            }
+            else if (mainboard.name.includes('DDR5')) {
+                mainboard.memoryType = 'DDR5';
+            }
+            else if (mainboard.name.includes('DDR4')) {
+                mainboard.memoryType = 'DDR4';
+            }
+            else if (mainboard.name.includes('DDR3')) {
+                mainboard.memoryType = 'DDR3';
+            }
+            else {
+                // Mặc định giả định RAM type dựa trên tên
+                mainboard.memoryType = 'DDR4'; // Mặc định cho phần lớn mainboard hiện đại
+            }
+        }
+        logger.log(`Detected mainboard memory type for ${mainboard.name}: ${mainboard.memoryType}`);
+    }
+    
+    // Kiểm tra tương thích RAM với mainboard
+    const isCompatible = ram.type === mainboard.memoryType;
+    logger.log(`RAM Compatibility Check: ${ram.name} (${ram.type}) with ${mainboard.name} (${mainboard.memoryType}): ${isCompatible ? 'Compatible' : 'Not Compatible'}`);
+    
+    return isCompatible;
 };
 
 // Expose the functions globally
