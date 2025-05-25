@@ -2,6 +2,331 @@
  * Component Connector - kết nối tất cả các thành phần của trang web
  */
 
+// Định dạng giá tiền
+function formatPrice(price) {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+// Function to get component data from the data files
+function getComponentData(componentType, componentId) {
+    if (!componentId) return null;
+    
+    // Map componentType đến đúng đối tượng dữ liệu toàn cục
+    const dataMap = {
+        'CPU': window.cpuData,
+        'Mainboard': window.mainboardData,
+        'RAM': window.ramData,
+        'VGA': window.vgaData,
+        'SSD': window.ssdData,
+        'PSU': window.psuData,
+        'Case': window.caseData,
+        'Cooler': window.cpuCoolerData,
+        'HDD': window.hddData,
+        'Monitor': window.monitorData
+    };
+    
+    // Lấy đối tượng dữ liệu
+    const dataObj = dataMap[componentType];
+    if (!dataObj) return null;
+    
+    // Trả về dữ liệu component
+    return dataObj[componentId];
+}
+
+// Function to get component specs from component data
+function getComponentSpecs(componentType, componentId) {
+    const component = getComponentData(componentType, componentId);
+    if (!component) return {};
+    
+    // Trả về thuộc tính specs của component nếu có
+    return component.specs || {};
+}
+
+// Lấy URL hình ảnh linh kiện (mặc định)
+function getComponentImageUrl(componentType, componentId) {
+    const component = getComponentData(componentType, componentId);
+    if (!component || !component.image) {
+        // Trả về đường dẫn hình ảnh mặc định nếu không tìm thấy hình ảnh
+        return 'images/placeholder.jpg';
+    }
+    
+    return component.image;
+}
+
+// Thu thập dữ liệu cấu hình
+function collectConfigData() {
+    const configData = {};
+    
+    // CPU
+    const cpuSelect = document.getElementById('cpu');
+    if (cpuSelect && cpuSelect.value) {
+        const cpuData = getComponentData('CPU', cpuSelect.value);
+        if (cpuData) {
+            configData.CPU = {
+                name: cpuData.name,
+                price: cpuData.price,
+                specs: getComponentSpecs('CPU', cpuSelect.value),
+                image: cpuData.image
+            };
+        }
+    }
+    
+    // Mainboard
+    const mainboardSelect = document.getElementById('mainboard');
+    if (mainboardSelect && mainboardSelect.value) {
+        const mainboardData = getComponentData('Mainboard', mainboardSelect.value);
+        if (mainboardData) {
+            configData.Mainboard = {
+                name: mainboardData.name,
+                price: mainboardData.price,
+                specs: getComponentSpecs('Mainboard', mainboardSelect.value),
+                image: mainboardData.image
+            };
+        }
+    }
+    
+    // RAM
+    const ramSelect = document.getElementById('ram');
+    if (ramSelect && ramSelect.value) {
+        const ramData = getComponentData('RAM', ramSelect.value);
+        if (ramData) {
+            configData.RAM = {
+                name: ramData.name,
+                price: ramData.price,
+                specs: getComponentSpecs('RAM', ramSelect.value),
+                image: ramData.image
+            };
+        }
+    }
+    
+    // VGA
+    const vgaSelect = document.getElementById('vga');
+    if (vgaSelect && vgaSelect.value) {
+        const vgaData = getComponentData('VGA', vgaSelect.value);
+        if (vgaData) {
+            configData.VGA = {
+                name: vgaData.name,
+                price: vgaData.price,
+                specs: getComponentSpecs('VGA', vgaSelect.value),
+                image: vgaData.image
+            };
+        }
+    }
+    
+    // SSD
+    const ssdSelect = document.getElementById('ssd');
+    if (ssdSelect && ssdSelect.value) {
+        const ssdData = getComponentData('SSD', ssdSelect.value);
+        if (ssdData) {
+            configData.SSD = {
+                name: ssdData.name,
+                price: ssdData.price,
+                specs: getComponentSpecs('SSD', ssdSelect.value),
+                image: ssdData.image
+            };
+        }
+    }
+    
+    // PSU
+    const psuSelect = document.getElementById('psu');
+    if (psuSelect && psuSelect.value) {
+        const psuData = getComponentData('PSU', psuSelect.value);
+        if (psuData) {
+            configData.PSU = {
+                name: psuData.name,
+                price: psuData.price,
+                specs: getComponentSpecs('PSU', psuSelect.value),
+                image: psuData.image
+            };
+        }
+    }
+    
+    // Case
+    const caseSelect = document.getElementById('case');
+    if (caseSelect && caseSelect.value) {
+        const caseData = getComponentData('Case', caseSelect.value);
+        if (caseData) {
+            configData.Case = {
+                name: caseData.name,
+                price: caseData.price,
+                specs: getComponentSpecs('Case', caseSelect.value),
+                image: caseData.image
+            };
+        }
+    }
+    
+    // CPU Cooler
+    const coolerSelect = document.getElementById('cpuCooler');
+    if (coolerSelect && coolerSelect.value) {
+        const coolerData = getComponentData('Cooler', coolerSelect.value);
+        if (coolerData) {
+            configData.Cooler = {
+                name: coolerData.name,
+                price: coolerData.price,
+                specs: getComponentSpecs('Cooler', coolerSelect.value),
+                image: coolerData.image
+            };
+        }
+    }
+    
+    // HDD
+    const hddSelect = document.getElementById('hdd');
+    if (hddSelect && hddSelect.value) {
+        const hddData = getComponentData('HDD', hddSelect.value);
+        if (hddData) {
+            configData.HDD = {
+                name: hddData.name,
+                price: hddData.price,
+                specs: getComponentSpecs('HDD', hddSelect.value),
+                image: hddData.image
+            };
+        }
+    }
+    
+    // Monitor
+    const monitorSelect = document.getElementById('monitor');
+    if (monitorSelect && monitorSelect.value) {
+        const monitorData = getComponentData('Monitor', monitorSelect.value);
+        if (monitorData) {
+            configData.Monitor = {
+                name: monitorData.name,
+                price: monitorData.price,
+                specs: getComponentSpecs('Monitor', monitorSelect.value),
+                image: monitorData.image
+            };
+        }
+    }
+    
+    console.log('Collected config data:', configData);
+    return configData;
+}
+
+// Function to update total price
+function updateTotalPrice() {
+    // Calculate total price
+    let totalPrice = 0;
+    const configData = collectConfigData();
+    
+    for (const key in configData) {
+        if (configData[key] && configData[key].price) {
+            totalPrice += configData[key].price;
+        }
+    }
+    
+    // Update total price cells
+    const totalPriceCell = document.getElementById('total-price-cell');
+    const remainingPriceCell = document.getElementById('remaining-price-cell');
+    
+    if (totalPriceCell) {
+        totalPriceCell.textContent = formatPrice(totalPrice) + ' VNĐ';
+    }
+    
+    if (remainingPriceCell) {
+        remainingPriceCell.textContent = formatPrice(totalPrice) + ' VNĐ';
+    }
+    
+    // Also update main total price section
+    const totalPriceSection = document.querySelector('#total-price p');
+    if (totalPriceSection) {
+        totalPriceSection.textContent = formatPrice(totalPrice) + ' VNĐ';
+    }
+}
+
+// Add the function to update table images
+function updateConfigTableImages() {
+    // Component types and their corresponding table cells
+    const componentImageCells = {
+        'cpu': 'cpu-image',
+        'mainboard': 'mainboard-image',
+        'ram': 'ram-image',
+        'vga': 'vga-image',
+        'ssd': 'ssd-image',
+        'cpuCooler': 'cpu-cooler-image',
+        'psu': 'psu-image',
+        'case': 'case-image',
+        'hdd': 'hdd-image',
+        'monitor': 'monitor-image'
+    };
+    
+    // Component names and price cells
+    const componentNameCells = {
+        'cpu': ['cpu-name', 'cpu-price', 'cpu-total'],
+        'mainboard': ['mainboard-name', 'mainboard-price', 'mainboard-total'],
+        'ram': ['ram-name', 'ram-price', 'ram-total'],
+        'vga': ['vga-name', 'vga-price', 'vga-total'],
+        'ssd': ['ssd-name', 'ssd-price', 'ssd-total'],
+        'cpuCooler': ['cpu-cooler-name', 'cpu-cooler-price', 'cpu-cooler-total'],
+        'psu': ['psu-name', 'psu-price', 'psu-total'],
+        'case': ['case-name', 'case-price', 'case-total'],
+        'hdd': ['additional-component-name', 'additional-component-price', 'additional-component-total'],
+        'monitor': ['monitor-name', 'monitor-price', 'monitor-total']
+    };
+    
+    // Update images and text for each component
+    for (const [componentId, cellId] of Object.entries(componentImageCells)) {
+        const select = document.getElementById(componentId);
+        const cell = document.getElementById(cellId);
+        
+        if (select && cell && select.value) {
+            // Get component data
+            const typeMap = {
+                'cpu': 'CPU',
+                'mainboard': 'Mainboard',
+                'ram': 'RAM',
+                'vga': 'VGA',
+                'ssd': 'SSD',
+                'cpuCooler': 'Cooler',
+                'psu': 'PSU',
+                'case': 'Case',
+                'hdd': 'HDD',
+                'monitor': 'Monitor'
+            };
+            
+            const componentType = typeMap[componentId];
+            const componentData = getComponentData(componentType, select.value);
+            
+            if (componentData) {
+                // Create an image element
+                const img = document.createElement('img');
+                img.src = componentData.image || getComponentImageUrl(componentType, select.value);
+                img.alt = componentData.name;
+                img.style.maxWidth = '50px';
+                img.style.maxHeight = '50px';
+                img.onerror = function() {
+                    this.src = getComponentImageUrl(componentType, select.value); // Fallback image
+                };
+                
+                // Clear cell and append the image
+                cell.innerHTML = '';
+                cell.appendChild(img);
+                
+                // Update name and price cells
+                const namePriceCells = componentNameCells[componentId];
+                if (namePriceCells && namePriceCells.length === 3) {
+                    const nameCell = document.getElementById(namePriceCells[0]);
+                    const priceCell = document.getElementById(namePriceCells[1]);
+                    const totalCell = document.getElementById(namePriceCells[2]);
+                    
+                    if (nameCell) nameCell.textContent = componentData.name;
+                    if (priceCell) {
+                        const price = componentData.price;
+                        priceCell.textContent = formatPrice(price) + ' VNĐ';
+                    }
+                    if (totalCell && priceCell) {
+                        totalCell.textContent = priceCell.textContent;
+                    }
+                }
+            }
+        } else if (cell) {
+            // Clear the cell if no component selected
+            cell.innerHTML = '';
+        }
+    }
+    
+    // Update total price
+    updateTotalPrice();
+}
+
 (function() {
     // Kiểm tra DOM đã sẵn sàng chưa
     document.addEventListener('DOMContentLoaded', initConnector);
@@ -104,154 +429,6 @@
                 });
             }
         }, 2000);
-    }
-    
-    // Thu thập dữ liệu cấu hình
-    function collectConfigData() {
-        const configData = {};
-        
-        // CPU
-        const cpuSelect = document.getElementById('cpu');
-        if (cpuSelect && cpuSelect.value) {
-            const cpuData = getComponentData('CPU', cpuSelect.value);
-            if (cpuData) {
-                configData.CPU = {
-                    name: cpuData.name,
-                    price: cpuData.price,
-                    specs: getComponentSpecs('CPU', cpuSelect.value),
-                    image: cpuData.image
-                };
-            }
-        }
-        
-        // Mainboard
-        const mainboardSelect = document.getElementById('mainboard');
-        if (mainboardSelect && mainboardSelect.value) {
-            const mainboardData = getComponentData('Mainboard', mainboardSelect.value);
-            if (mainboardData) {
-                configData.Mainboard = {
-                    name: mainboardData.name,
-                    price: mainboardData.price,
-                    specs: getComponentSpecs('Mainboard', mainboardSelect.value),
-                    image: mainboardData.image
-                };
-            }
-        }
-        
-        // RAM
-        const ramSelect = document.getElementById('ram');
-        if (ramSelect && ramSelect.value) {
-            const ramData = getComponentData('RAM', ramSelect.value);
-            if (ramData) {
-                configData.RAM = {
-                    name: ramData.name,
-                    price: ramData.price,
-                    specs: getComponentSpecs('RAM', ramSelect.value),
-                    image: ramData.image
-                };
-            }
-        }
-        
-        // VGA
-        const vgaSelect = document.getElementById('vga');
-        if (vgaSelect && vgaSelect.value) {
-            const vgaData = getComponentData('VGA', vgaSelect.value);
-            if (vgaData) {
-                configData.VGA = {
-                    name: vgaData.name,
-                    price: vgaData.price,
-                    specs: getComponentSpecs('VGA', vgaSelect.value),
-                    image: vgaData.image
-                };
-            }
-        }
-        
-        // SSD
-        const ssdSelect = document.getElementById('ssd');
-        if (ssdSelect && ssdSelect.value) {
-            const ssdData = getComponentData('SSD', ssdSelect.value);
-            if (ssdData) {
-                configData.SSD = {
-                    name: ssdData.name,
-                    price: ssdData.price,
-                    specs: getComponentSpecs('SSD', ssdSelect.value),
-                    image: ssdData.image
-                };
-            }
-        }
-        
-        // PSU
-        const psuSelect = document.getElementById('psu');
-        if (psuSelect && psuSelect.value) {
-            const psuData = getComponentData('PSU', psuSelect.value);
-            if (psuData) {
-                configData.PSU = {
-                    name: psuData.name,
-                    price: psuData.price,
-                    specs: getComponentSpecs('PSU', psuSelect.value),
-                    image: psuData.image
-                };
-            }
-        }
-        
-        // Case
-        const caseSelect = document.getElementById('case');
-        if (caseSelect && caseSelect.value) {
-            const caseData = getComponentData('Case', caseSelect.value);
-            if (caseData) {
-                configData.Case = {
-                    name: caseData.name,
-                    price: caseData.price,
-                    specs: getComponentSpecs('Case', caseSelect.value),
-                    image: caseData.image
-                };
-            }
-        }
-        
-        // CPU Cooler
-        const coolerSelect = document.getElementById('cpuCooler');
-        if (coolerSelect && coolerSelect.value) {
-            const coolerData = getComponentData('Cooler', coolerSelect.value);
-            if (coolerData) {
-                configData.Cooler = {
-                    name: coolerData.name,
-                    price: coolerData.price,
-                    specs: getComponentSpecs('Cooler', coolerSelect.value),
-                    image: coolerData.image
-                };
-            }
-        }
-        
-        // HDD
-        const hddSelect = document.getElementById('hdd');
-        if (hddSelect && hddSelect.value) {
-            const hddData = getComponentData('HDD', hddSelect.value);
-            if (hddData) {
-                configData.HDD = {
-                    name: hddData.name,
-                    price: hddData.price,
-                    specs: getComponentSpecs('HDD', hddSelect.value),
-                    image: hddData.image
-                };
-            }
-        }
-        
-        // Monitor
-        const monitorSelect = document.getElementById('monitor');
-        if (monitorSelect && monitorSelect.value) {
-            const monitorData = getComponentData('Monitor', monitorSelect.value);
-            if (monitorData) {
-                configData.Monitor = {
-                    name: monitorData.name,
-                    price: monitorData.price,
-                    specs: getComponentSpecs('Monitor', monitorSelect.value),
-                    image: monitorData.image
-                };
-            }
-        }
-        
-        console.log('Collected config data:', configData);
-        return configData;
     }
     
     // Kết nối modal handlers
@@ -376,57 +553,6 @@
             
             componentsList.innerHTML = tableHtml;
         }
-    }
-    
-    // Định dạng giá tiền
-    function formatPrice(price) {
-        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
-    
-    // Lấy URL hình ảnh linh kiện (mặc định)
-    function getComponentImageUrl(componentType, componentId) {
-        const component = getComponentData(componentType, componentId);
-        if (!component || !component.image) {
-            // Trả về đường dẫn hình ảnh mặc định nếu không tìm thấy hình ảnh
-            return 'images/placeholder.jpg';
-        }
-        
-        return component.image;
-    }
-    
-    // Function to get component data from the data files
-    function getComponentData(componentType, componentId) {
-        if (!componentId) return null;
-        
-        // Map componentType đến đúng đối tượng dữ liệu toàn cục
-        const dataMap = {
-            'CPU': window.cpuData,
-            'Mainboard': window.mainboardData,
-            'RAM': window.ramData,
-            'VGA': window.vgaData,
-            'SSD': window.ssdData,
-            'PSU': window.psuData,
-            'Case': window.caseData,
-            'Cooler': window.cpuCoolerData,
-            'HDD': window.hddData,
-            'Monitor': window.monitorData
-        };
-        
-        // Lấy đối tượng dữ liệu
-        const dataObj = dataMap[componentType];
-        if (!dataObj) return null;
-        
-        // Trả về dữ liệu component
-        return dataObj[componentId];
-    }
-    
-    // Function to get component specs from component data
-    function getComponentSpecs(componentType, componentId) {
-        const component = getComponentData(componentType, componentId);
-        if (!component) return {};
-        
-        // Trả về thuộc tính specs của component nếu có
-        return component.specs || {};
     }
     
     // Cải thiện dropdowns
@@ -554,132 +680,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Add the function to update table images
-function updateConfigTableImages() {
-    // Component types and their corresponding table cells
-    const componentImageCells = {
-        'cpu': 'cpu-image',
-        'mainboard': 'mainboard-image',
-        'ram': 'ram-image',
-        'vga': 'vga-image',
-        'ssd': 'ssd-image',
-        'cpuCooler': 'cpu-cooler-image',
-        'psu': 'psu-image',
-        'case': 'case-image',
-        'hdd': 'hdd-image',
-        'monitor': 'monitor-image'
-    };
-    
-    // Component names and price cells
-    const componentNameCells = {
-        'cpu': ['cpu-name', 'cpu-price', 'cpu-total'],
-        'mainboard': ['mainboard-name', 'mainboard-price', 'mainboard-total'],
-        'ram': ['ram-name', 'ram-price', 'ram-total'],
-        'vga': ['vga-name', 'vga-price', 'vga-total'],
-        'ssd': ['ssd-name', 'ssd-price', 'ssd-total'],
-        'cpuCooler': ['cpu-cooler-name', 'cpu-cooler-price', 'cpu-cooler-total'],
-        'psu': ['psu-name', 'psu-price', 'psu-total'],
-        'case': ['case-name', 'case-price', 'case-total'],
-        'hdd': ['additional-component-name', 'additional-component-price', 'additional-component-total'],
-        'monitor': ['monitor-name', 'monitor-price', 'monitor-total']
-    };
-    
-    // Update images and text for each component
-    for (const [componentId, cellId] of Object.entries(componentImageCells)) {
-        const select = document.getElementById(componentId);
-        const cell = document.getElementById(cellId);
-        
-        if (select && cell && select.value) {
-            // Get component data
-            const typeMap = {
-                'cpu': 'CPU',
-                'mainboard': 'Mainboard',
-                'ram': 'RAM',
-                'vga': 'VGA',
-                'ssd': 'SSD',
-                'cpuCooler': 'Cooler',
-                'psu': 'PSU',
-                'case': 'Case',
-                'hdd': 'HDD',
-                'monitor': 'Monitor'
-            };
-            
-            const componentType = typeMap[componentId];
-            const componentData = getComponentData(componentType, select.value);
-            
-            if (componentData) {
-                // Create an image element
-                const img = document.createElement('img');
-                img.src = componentData.image || getComponentImageUrl(componentType, select.value);
-                img.alt = componentData.name;
-                img.style.maxWidth = '50px';
-                img.style.maxHeight = '50px';
-                img.onerror = function() {
-                    this.src = getComponentImageUrl(componentType, select.value); // Fallback image
-                };
-                
-                // Clear cell and append the image
-                cell.innerHTML = '';
-                cell.appendChild(img);
-                
-                // Update name and price cells
-                const namePriceCells = componentNameCells[componentId];
-                if (namePriceCells && namePriceCells.length === 3) {
-                    const nameCell = document.getElementById(namePriceCells[0]);
-                    const priceCell = document.getElementById(namePriceCells[1]);
-                    const totalCell = document.getElementById(namePriceCells[2]);
-                    
-                    if (nameCell) nameCell.textContent = componentData.name;
-                    if (priceCell) {
-                        const price = componentData.price;
-                        priceCell.textContent = formatPrice(price) + ' VNĐ';
-                    }
-                    if (totalCell && priceCell) {
-                        totalCell.textContent = priceCell.textContent;
-                    }
-                }
-            }
-        } else if (cell) {
-            // Clear the cell if no component selected
-            cell.innerHTML = '';
-        }
-    }
-    
-    // Update total price
-    updateTotalPrice();
-}
-
-// Function to update total price
-function updateTotalPrice() {
-    // Calculate total price
-    let totalPrice = 0;
-    const configData = collectConfigData();
-    
-    for (const key in configData) {
-        if (configData[key] && configData[key].price) {
-            totalPrice += configData[key].price;
-        }
-    }
-    
-    // Update total price cells
-    const totalPriceCell = document.getElementById('total-price-cell');
-    const remainingPriceCell = document.getElementById('remaining-price-cell');
-    
-    if (totalPriceCell) {
-        totalPriceCell.textContent = formatPrice(totalPrice) + ' VNĐ';
-    }
-    
-    if (remainingPriceCell) {
-        remainingPriceCell.textContent = formatPrice(totalPrice) + ' VNĐ';
-    }
-    
-    // Also update main total price section
-    const totalPriceSection = document.querySelector('#total-price p');
-    if (totalPriceSection) {
-        totalPriceSection.textContent = formatPrice(totalPrice) + ' VNĐ';
-    }
-}
-
 // Setup event listener for "XEM CHI TIẾT VÀ ĐÁNH GIÁ" button
 document.addEventListener('DOMContentLoaded', function() {
     const calculateButton = document.getElementById('calculate-button');
@@ -736,4 +736,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Make functions available globally
 window.updateConfigTableImages = updateConfigTableImages;
-window.updateTotalPrice = updateTotalPrice; 
+window.updateTotalPrice = updateTotalPrice;
+window.collectConfigData = collectConfigData;
+window.getComponentData = getComponentData;
+window.getComponentSpecs = getComponentSpecs;
+window.getComponentImageUrl = getComponentImageUrl;
+window.formatPrice = formatPrice; 
