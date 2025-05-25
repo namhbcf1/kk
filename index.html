@@ -360,6 +360,58 @@
         body.amd-mode #cpu-mode-indicator {
             background-color: #ED1C24;
         }
+        
+        /* Add these styles to ensure the component table is visible and properly centered */
+        .component-table-container {
+            margin: 30px auto;
+            max-width: 90%;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: block !important;
+        }
+        
+        .component-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+        
+        .component-table th, 
+        .component-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        .component-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        
+        .component-row {
+            display: table-row !important;
+        }
+        
+        /* Ensure total row is always visible */
+        #total-row {
+            display: table-row !important;
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+        
+        /* Improve image container styling */
+        .component-image-cell {
+            text-align: center;
+            width: 120px;
+        }
+        
+        /* Make sure the CPU total cell is visible */
+        #cpu-total {
+            text-align: right !important;
+            display: table-cell !important;
+        }
     </style>
     
     <script>

@@ -98,18 +98,6 @@ export const ramData = {
         image: "images/ram-adata-xpg-16gb-ddr4-3200.jpg",
         score: 3 // Added score
     },
-    "tridentz-16": {
-        name: "RAM G.Skill TridentZ 16GB DDR4 (Bus 3600)",
-        price: 1100000,
-        brand: "G.Skill",
-        type: "DDR4",
-        speed: "3600MHz",
-        size: "16GB",
-        warranty: "36 tháng",
-        condition: "NEW",
-        image: "images/ram-tridentz-16gb-ddr4-3600.jpg",
-        score: 5 // Added score
-    },
     "D38G": {
         name: "RAM DDR3 8G 1600MHz",
         price: 130000,

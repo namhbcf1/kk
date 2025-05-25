@@ -121,29 +121,54 @@ function updateRamOptionsBasedOnMainboard(mainboardKey) {
             Object.keys(window.ramData).forEach(ramKey => {
                 const ram = window.ramData[ramKey];
                 
-                // Kiểm tra tương thích dựa trên loại RAM và mainboard
-                let ramCompatible = ram.type === memoryType;
-                
-                // Thêm kiểm tra đặc biệt cho một số loại mainboard
-                if (mainboard.name.includes('H610') || mainboard.name.includes('B660') || mainboard.name.includes('H510')) {
-                    // H610, B660, H510 chỉ hỗ trợ DDR4
-                    ramCompatible = ramCompatible && ram.type === 'DDR4';
-                }
-                
-                if (mainboard.name.includes('Z690') || mainboard.name.includes('Z790')) {
-                    // Kiểm tra phiên bản Z690/Z790 hỗ trợ loại RAM nào
-                    if (mainboard.name.includes('DDR4')) {
-                        ramCompatible = ramCompatible && ram.type === 'DDR4';
-                    } else if (mainboard.name.includes('DDR5')) {
-                        ramCompatible = ramCompatible && ram.type === 'DDR5';
+                // Hàm xác định loại RAM tương thích với mainboard
+                function determineRamCompatibility(ram, mainboard) {
+                    if (!ram || !mainboard) return false;
+                    
+                    const ramType = ram.type || '';
+                    const mbName = mainboard.name || '';
+                    const defaultMemoryType = mainboard.memoryType || 'DDR4';
+                    
+                    // Mặc định, RAM phải cùng loại với mainboard
+                    if (ramType !== defaultMemoryType) return false;
+                    
+                    // Kiểm tra đặc biệt cho Intel
+                    if (mbName.includes('H610') || mbName.includes('B660') || mbName.includes('H510')) {
+                        // Các bo mạch H610, B660, H510 chỉ hỗ trợ DDR4
+                        return ramType === 'DDR4';
                     }
+                    
+                    // Kiểm tra cho Z690/Z790
+                    if (mbName.includes('Z690') || mbName.includes('Z790')) {
+                        if (mbName.includes('DDR4')) {
+                            return ramType === 'DDR4';
+                        } else if (mbName.includes('DDR5')) {
+                            return ramType === 'DDR5';
+                        } else {
+                            // Mặc định là DDR5 cho Z690/Z790
+                            return ramType === 'DDR5';
+                        }
+                    }
+                    
+                    // Kiểm tra cho AMD
+                    if (mbName.includes('B450') || mbName.includes('B550') || mbName.includes('X570')) {
+                        // Chỉ hỗ trợ DDR4
+                        return ramType === 'DDR4';
+                    }
+                    
+                    // Nếu có loại DDR rõ ràng trong tên bo mạch
+                    if (mbName.includes('DDR4')) {
+                        return ramType === 'DDR4';
+                    } else if (mbName.includes('DDR5')) {
+                        return ramType === 'DDR5';
+                    }
+                    
+                    // Mặc định kiểm tra với loại RAM của mainboard
+                    return ramType === defaultMemoryType;
                 }
                 
-                // Kiểm tra cho AMD
-                if (mainboard.name.includes('B450') || mainboard.name.includes('B550') || mainboard.name.includes('X570')) {
-                    // B450, B550, X570 chỉ hỗ trợ DDR4
-                    ramCompatible = ramCompatible && ram.type === 'DDR4';
-                }
+                // Kiểm tra tương thích RAM
+                const ramCompatible = determineRamCompatibility(ram, mainboard);
                 
                 if (ramCompatible) {
                     const option = document.createElement('option');
@@ -297,7 +322,44 @@ function filterMainboardsByCpu(cpuKey) {
         // Cập nhật thông tin socket
         const socketInfoDivUpdated = document.getElementById('socket-info');
         if (socketInfoDivUpdated) {
-            socketInfoDivUpdated.innerHTML = `CPU Socket: ${cpuSocket} | Mainboard Socket: ${cpuSocket} | RAM Type: ${cpu.memoryType || 'DDR4'}`;
+            // Xác định thông tin RAM type từ CPU
+            let ramType = 'DDR4'; // Mặc định
+            
+            // Xác định theo tên CPU
+            if (cpu.name.includes('Intel') || cpu.name.includes('Core')) {
+                if (cpu.name.includes('12') || cpu.name.includes('13')) {
+                    // Intel 12th/13th gen có thể dùng DDR4 hoặc DDR5 tùy mainboard
+                    ramType = 'DDR4/DDR5';
+                } else {
+                    ramType = 'DDR4';
+                }
+            } else if (cpu.name.includes('Ryzen')) {
+                if (cpu.name.includes('7000')) {
+                    ramType = 'DDR5';
+                } else {
+                    ramType = 'DDR4';
+                }
+            }
+            
+            // Sử dụng thông tin từ CPU nếu có
+            if (cpu.memoryType) {
+                ramType = cpu.memoryType;
+            }
+            
+            // Hiển thị với màu nổi bật
+            socketInfoDivUpdated.innerHTML = `
+                <span style="color:#1e88e5; font-weight:bold;">CPU Socket: ${cpuSocket}</span> | 
+                <span style="color:#43a047; font-weight:bold;">Mainboard Socket: ${cpuSocket}</span> | 
+                <span style="color:#e53935; font-weight:bold;">RAM Type: ${ramType}</span>
+            `;
+            
+            // Thêm style cho div
+            socketInfoDivUpdated.style.backgroundColor = '#e3f2fd';
+            socketInfoDivUpdated.style.padding = '15px';
+            socketInfoDivUpdated.style.borderRadius = '5px';
+            socketInfoDivUpdated.style.margin = '10px 0';
+            socketInfoDivUpdated.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+            socketInfoDivUpdated.style.fontSize = '16px';
         }
         
         console.log(`Filtering mainboards by CPU socket: ${cpuSocket}`);
@@ -322,28 +384,63 @@ function filterMainboardsByCpu(cpuKey) {
                 // Kiểm tra tương thích nghiêm ngặt dựa trên socket chính xác
                 let isCompatible = false;
                 
-                // Đảm bảo so sánh chính xác socket
-                if (Array.isArray(mbSockets)) {
-                    // Chỉ tương thích nếu có socket hoàn toàn giống nhau
-                    isCompatible = mbSockets.some(socket => socket.toUpperCase() === cpuSocket.toUpperCase());
-                } else {
-                    // So sánh string chính xác
-                    isCompatible = mbSockets.toUpperCase() === cpuSocket.toUpperCase();
+                // Hàm tự tạo xác định tương thích giữa CPU và mainboard
+                function determineCpuMainboardCompatibility(cpu, mainboard) {
+                    if (!cpu || !mainboard) return false;
+                    
+                    const cpuName = cpu.name || '';
+                    const cpuSocket = cpu.socket || '';
+                    const mbName = mainboard.name || '';
+                    const mbSocket = Array.isArray(mainboard.sockets) ? mainboard.sockets : [mainboard.socket || ''];
+                    
+                    // Kiểm tra tương thích theo nhà sản xuất
+                    const isAMDCpu = cpuSocket.includes('AM4') || cpuName.includes('AMD') || cpuName.includes('Ryzen');
+                    const isIntelCpu = cpuSocket.includes('LGA') || cpuName.includes('Intel') || cpuName.includes('Core');
+                    
+                    const isAMDBoard = mbSocket.some(s => s.includes('AM4')) || 
+                                      mbName.includes('B450') || 
+                                      mbName.includes('B550') || 
+                                      mbName.includes('X570');
+                    
+                    const isIntelBoard = mbSocket.some(s => s.includes('LGA')) || 
+                                        mbName.includes('H610') || 
+                                        mbName.includes('B660') || 
+                                        mbName.includes('Z690');
+                    
+                    // Kiểm tra AMD CPU với AMD Board
+                    if (isAMDCpu && !isAMDBoard) return false;
+                    
+                    // Kiểm tra Intel CPU với Intel Board
+                    if (isIntelCpu && !isIntelBoard) return false;
+                    
+                    // Kiểm tra chi tiết cho Intel
+                    if (isIntelCpu) {
+                        if ((cpuName.includes('12') || cpuName.includes('13')) && 
+                            !(mbName.includes('H610') || mbName.includes('B660') || mbName.includes('Z690'))) {
+                            return false;
+                        }
+                        
+                        if ((cpuName.includes('10') || cpuName.includes('11')) && 
+                            !(mbName.includes('B560') || mbName.includes('Z590') || mbName.includes('H510'))) {
+                            return false;
+                        }
+                    }
+                    
+                    // Kiểm tra chi tiết cho AMD
+                    if (isAMDCpu) {
+                        if (cpuName.includes('5') && // Ryzen 5000 series
+                            !(mbName.includes('B550') || mbName.includes('X570'))) {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
                 }
                 
-                // Thêm kiểm tra đặc biệt cho AMD và Intel
-                if (cpuSocket.includes('AM4')) {
-                    // CPU AMD chỉ tương thích với mainboard AMD
-                    isCompatible = isCompatible && !mainboard.name.includes('H610') && 
-                                  !mainboard.name.includes('B660') && 
-                                  !mainboard.name.includes('Z690') &&
-                                  !mainboard.name.includes('LGA1700');
-                } else if (cpuSocket.includes('LGA1700')) {
-                    // CPU Intel chỉ tương thích với mainboard Intel
-                    isCompatible = isCompatible && !mainboard.name.includes('B450') && 
-                                  !mainboard.name.includes('B550') && 
-                                  !mainboard.name.includes('X570') &&
-                                  !mainboard.name.includes('AM4');
+                // Xác định tương thích
+                isCompatible = determineCpuMainboardCompatibility(cpu, mainboard);
+                
+                console.log(`Compatibility check for ${cpu.name} (${cpuSocket}) with ${mainboard.name}: ${isCompatible ? 'Compatible' : 'Not compatible'}`);
                 }
                 
                 if (isCompatible) {
@@ -1798,14 +1895,40 @@ document.addEventListener('DOMContentLoaded', function () {
     function getMainboardSocketFromName(name) {
         if (!name) return '';
         
-        if (name.includes('B660') || name.includes('Z690') || name.includes('B760')) {
-            return 'LGA1700';
-        } else if (name.includes('B560') || name.includes('Z590')) {
-            return 'LGA1200';
-        } else if (name.includes('B450') || name.includes('B550') || name.includes('X570')) {
+        // AMD
+        if (name.includes('B450') || name.includes('B550') || name.includes('X570')) {
             return 'AM4';
+        } else if (name.includes('X670') || name.includes('B650')) {
+            return 'AM5';
         }
         
+        // Intel
+        else if (name.includes('H610') || name.includes('B660') || name.includes('Z690') ||
+                 name.includes('H670') || name.includes('B760') || name.includes('Z790')) {
+            return 'LGA1700';
+        } else if (name.includes('B560') || name.includes('Z590') || name.includes('H510') || 
+                   name.includes('H570')) {
+            return 'LGA1200';
+        } else if (name.includes('Z490') || name.includes('B460') || name.includes('H470')) {
+            return 'LGA1200';
+        } else if (name.includes('Z390') || name.includes('B360') || name.includes('H370')) {
+            return 'LGA1151';
+        }
+        
+        // Kiểm tra từ khóa socket trong tên
+        else if (name.includes('AM4')) {
+            return 'AM4';
+        } else if (name.includes('AM5')) {
+            return 'AM5';
+        } else if (name.includes('LGA1700')) {
+            return 'LGA1700';
+        } else if (name.includes('LGA1200')) {
+            return 'LGA1200';
+        } else if (name.includes('LGA1151')) {
+            return 'LGA1151';
+        }
+        
+        // Mặc định
         return '';
     }
 

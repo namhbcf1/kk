@@ -440,48 +440,144 @@ window.formatPrice = formatPrice;
         }, 2000);
     }
     
-    // Kết nối modal handlers
-    function connectModalHandlers() {
-        // Đảm bảo rằng modal handlers đã được khởi tạo
-        if (typeof window.modalHandler !== 'undefined') {
-            console.log('Connecting modal handlers');
+    // Create a basic fallback modal handler if none is found
+    function createFallbackModalHandler() {
+        console.log('Creating fallback modal handler');
+        
+        // First check if we already have a modal element
+        let modalElement = document.getElementById('component-detail-modal');
+        
+        if (!modalElement) {
+            // Create a basic modal structure if it doesn't exist
+            modalElement = document.createElement('div');
+            modalElement.id = 'component-detail-modal';
+            modalElement.className = 'modal fade';
+            modalElement.setAttribute('tabindex', '-1');
+            modalElement.setAttribute('role', 'dialog');
+            modalElement.setAttribute('aria-labelledby', 'componentModalLabel');
+            modalElement.setAttribute('aria-hidden', 'true');
             
-            // Tìm nút mở modal
-            const viewDetailButtons = document.querySelectorAll('.view-config-detail, #view-breakdown, #calculate-button');
-            viewDetailButtons.forEach(button => {
-                if (button) {
-                    // Xóa event listeners cũ
-                    const newButton = button.cloneNode(true);
-                    button.parentNode.replaceChild(newButton, button);
-                    
-                    newButton.addEventListener('click', function(e) {
-                        console.log('View detail button clicked');
-                        e.preventDefault();
-                        
-                        // Hiển thị modal
-                        const modal = document.querySelector('.modal');
-                        if (modal) {
-                            // Thêm dữ liệu vào modal nếu cần
-                            updateModalContent(modal);
-                            
-                            // Hiển thị modal
-                            modal.style.display = 'block';
-                            
-                            // Đảm bảo nút đóng hoạt động
-                            window.modalHandler.setupConfigDetailModal();
-                        }
+            modalElement.innerHTML = `
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="componentModalLabel">Chi tiết linh kiện</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" id="component-detail-content">
+                            <!-- Component details will be displayed here -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modalElement);
+            
+            // Ensure Bootstrap's modal functionality is available
+            if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+                // Bootstrap is available
+                console.log('Bootstrap modal functions found');
+            } else {
+                // Basic modal functionality
+                console.log('Adding basic modal functionality');
+                const closeButtons = modalElement.querySelectorAll('[data-dismiss="modal"]');
+                closeButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        modalElement.style.display = 'none';
                     });
-                }
-            });
-            
-            // Kiểm tra xem đã có modal handler chưa
-            setTimeout(() => {
-                window.modalHandler.setupConfigDetailModal();
-            }, 1000);
-        } else {
-            console.warn('Modal handler not found, will try again later');
-            setTimeout(connectModalHandlers, 1000);
+                });
+            }
         }
+        
+        // Create and return the handler function
+        return function(componentData) {
+            const modalContent = document.getElementById('component-detail-content');
+            if (!modalContent) {
+                console.error('Modal content element not found');
+                return;
+            }
+            
+            // Build details HTML
+            let detailsHtml = '';
+            if (componentData && typeof componentData === 'object') {
+                detailsHtml = `
+                    <div class="component-details">
+                        <h4>${componentData.name || 'Unknown Component'}</h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <img src="${componentData.image || ''}" alt="${componentData.name || 'Component'}" 
+                                    style="max-width: 100%; height: auto;" 
+                                    onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM0NDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiByeT0iMiI+PC9yZWN0Pjx0ZXh0IHg9IjEyIiB5PSIxNCIgZm9udC1zaXplPSI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNDQ0Ij5QQzwvdGV4dD48L3N2Zz4=';">
+                            </div>
+                            <div class="col-md-8">
+                                <table class="table table-striped">
+                                    <tbody>`;
+                
+                // Add all properties to the table
+                for (const [key, value] of Object.entries(componentData)) {
+                    if (key !== 'image' && key !== 'name') { // Skip image and name as they're shown separately
+                        detailsHtml += `
+                                        <tr>
+                                            <th>${key.charAt(0).toUpperCase() + key.slice(1)}</th>
+                                            <td>${value}</td>
+                                        </tr>`;
+                    }
+                }
+                
+                detailsHtml += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>`;
+            } else {
+                detailsHtml = '<div class="alert alert-warning">No component data available</div>';
+            }
+            
+            // Update modal content
+            modalContent.innerHTML = detailsHtml;
+            
+            // Show the modal
+            if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+                $('#component-detail-modal').modal('show');
+            } else {
+                modalElement.style.display = 'block';
+            }
+        };
+    }
+    
+    // Update connectModalHandlers function to use the fallback if needed
+    function connectModalHandlers() {
+        if (window.showComponentModal) {
+            console.log('Modal handler already connected');
+            return true;
+        }
+        
+        // Try to find a modal handler in the global scope
+        const potentialHandlers = ['showConfigDetailModal', 'showComponentDetailModal', 'openComponentModal'];
+        let found = false;
+        
+        for (const handlerName of potentialHandlers) {
+            if (typeof window[handlerName] === 'function') {
+                window.showComponentModal = window[handlerName];
+                console.log(`Found modal handler: ${handlerName}`);
+                found = true;
+                break;
+            }
+        }
+        
+        if (!found) {
+            console.log('Modal handler not found, creating fallback handler');
+            window.showComponentModal = createFallbackModalHandler();
+            found = true;
+        }
+        
+        return found;
     }
     
     // Cập nhật nội dung modal
@@ -744,4 +840,49 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
-}); 
+});
+
+function updateTableImage(cellId, imageSrc, componentType) {
+    const cell = document.getElementById(cellId);
+    if (!cell) return;
+    
+    // Clear existing content
+    cell.innerHTML = '';
+    
+    // Default placeholder images (data URLs for common components)
+    const defaultImages = {
+        'CPU': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM0NDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxyZWN0IHg9IjkiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiPjwvcmVjdD48bGluZSB4MT0iOSIgeTE9IjEiIHgyPSI5IiB5Mj0iNCIgc3Ryb2tlPSIjNDQ0Ij48L2xpbmU+PGxpbmUgeDE9IjE1IiB5MT0iMSIgeDI9IjE1IiB5Mj0iNCIgc3Ryb2tlPSIjNDQ0Ij48L2xpbmU+PGxpbmUgeDE9IjkiIHkxPSIyMCIgeDI9IjkiIHkyPSIyMyIgc3Ryb2tlPSIjNDQ0Ij48L2xpbmU+PGxpbmUgeDE9IjE1IiB5MT0iMjAiIHgyPSIxNSIgeTI9IjIzIiBzdHJva2U9IiM0NDQiPjwvbGluZT48bGluZSB4MT0iMjAiIHkxPSI5IiB4Mj0iMjMiIHkyPSI5IiBzdHJva2U9IiM0NDQiPjwvbGluZT48bGluZSB4MT0iMjAiIHkxPSIxNCIgeDI9IjIzIiB5Mj0iMTQiIHN0cm9rZT0iIzQ0NCI+PC9saW5lPjxsaW5lIHgxPSIxIiB5MT0iOSIgeDI9IjQiIHkyPSI5IiBzdHJva2U9IiM0NDQiPjwvbGluZT48bGluZSB4MT0iMSIgeTE9IjE0IiB4Mj0iNCIgeTI9IjE0IiBzdHJva2U9IiM0NDQiPjwvbGluZT48L3N2Zz4=',
+        'RAM': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM0NDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSI2IiB3aWR0aD0iMjAiIGhlaWdodD0iMTIiIHJ4PSIxIiByeT0iMSI+PC9yZWN0PjxsaW5lIHgxPSI2IiB5MT0iNiIgeDI9IjYiIHkyPSIxOCIgc3Ryb2tlPSIjNDQ0Ij48L2xpbmU+PGxpbmUgeDE9IjEwIiB5MT0iNiIgeDI9IjEwIiB5Mj0iMTgiIHN0cm9rZT0iIzQ0NCI+PC9saW5lPjxsaW5lIHgxPSIxNCIgeTE9IjYiIHgyPSIxNCIgeTI9IjE4IiBzdHJva2U9IiM0NDQiPjwvbGluZT48bGluZSB4MT0iMTgiIHkxPSI2IiB4Mj0iMTgiIHkyPSIxOCIgc3Ryb2tlPSIjNDQ0Ij48L2xpbmU+PC9zdmc+',
+        'Mainboard': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM0NDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHJ4PSIxIiByeT0iMSI+PC9yZWN0Pjx0ZXh0IHg9IjEyIiB5PSIxNCIgZm9udC1zaXplPSI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNDQ0Ij5NQJPC9yZXh0PjxjaXJjbGUgY3g9IjciIGN5PSI3IiByPSIyIiBzdHJva2U9IiM0NDQiPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjE3IiBjeT0iNyIgcj0iMiIgc3Ryb2tlPSIjNDQ0Ij48L2NpcmNsZT48Y2lyY2xlIGN4PSI3IiBjeT0iMTciIHI9IjIiIHN0cm9rZT0iIzQ0NCI+PC9jaXJjbGU+PGNpcmNsZSBjeD0iMTciIGN5PSIxNyIgcj0iMiIgc3Ryb2tlPSIjNDQ0Ij48L2NpcmNsZT48L3N2Zz4=',
+        'VGA': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM0NDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIyIiB5PSI2IiB3aWR0aD0iMTgiIGhlaWdodD0iMTIiIHJ4PSIxIiByeT0iMSI+PC9yZWN0PjxjaXJjbGUgY3g9IjE3IiBjeT0iMTIiIHI9IjIiIHN0cm9rZT0iIzQ0NCI+PC9jaXJjbGU+PGxpbmUgeDE9IjYiIHkxPSI2IiB4Mj0iNiIgeTI9IjMiIHN0cm9rZT0iIzQ0NCI+PC9saW5lPjxsaW5lIHgxPSI5IiB5MT0iNiIgeDI9IjkiIHkyPSIzIiBzdHJva2U9IiM0NDQiPjwvbGluZT48bGluZSB4MT0iMTIiIHkxPSI2IiB4Mj0iMTIiIHkyPSIzIiBzdHJva2U9IiM0NDQiPjwvbGluZT48L3N2Zz4=',
+        'PSU': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM0NDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI0IiB5PSI2IiB3aWR0aD0iMTYiIGhlaWdodD0iMTIiIHJ4PSIxIiByeT0iMSI+PC9yZWN0Pjx0ZXh0IHg9IjEyIiB5PSIxNCIgZm9udC1zaXplPSI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNDQ0Ij5QU1U8L3RleHQ+PGxpbmUgeDE9IjE2IiB5MT0iNiIgeDI9IjE2IiB5Mj0iMTAiIHN0cm9rZT0iIzQ0NCI+PC9saW5lPjxsaW5lIHgxPSIxMyIgeTE9IjYiIHgyPSIxMyIgeTI9IjEwIiBzdHJva2U9IiM0NDQiPjwvbGluZT48L3N2Zz4=',
+        'SSD': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM0NDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI0IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iOCIgcng9IjEiIHJ5PSIxIj48L3JlY3Q+PHRleHQgeD0iMTIiIHk9IjEzIiBmb250LXNpemU9IjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM0NDQiPlNTRDwvdGV4dD48bGluZSB4MT0iMiIgeTE9IjEyIiB4Mj0iNCIgeTI9IjEyIiBzdHJva2U9IiM0NDQiPjwvbGluZT48bGluZSB4MT0iMjAiIHkxPSIxMiIgeDI9IjIyIiB5Mj0iMTIiIHN0cm9rZT0iIzQ0NCI+PC9saW5lPjwvc3ZnPg==',
+        'Case': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM0NDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI0IiB5PSIzIiB3aWR0aD0iMTYiIGhlaWdodD0iMTgiIHJ4PSIxIiByeT0iMSI+PC9yZWN0PjxyZWN0IHg9IjYiIHk9IjYiIHdpZHRoPSI1IiBoZWlnaHQ9IjMiPjwvcmVjdD48cmVjdCB4PSI2IiB5PSIxMSIgd2lkdGg9IjEyIiBoZWlnaHQ9IjgiPjwvcmVjdD48L3N2Zz4=',
+        'Component': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM0NDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHJ4PSIyIiByeT0iMiI+PC9yZWN0Pjx0ZXh0IHg9IjEyIiB5PSIxNCIgZm9udC1zaXplPSI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNDQ0Ij5QQzwvdGV4dD48L3N2Zz4='
+    };
+    
+    if (!imageSrc) {
+        // Show placeholder if no image source provided
+        const defaultImage = defaultImages[componentType] || defaultImages['Component'];
+        cell.innerHTML = `<img src="${defaultImage}" alt="${componentType || 'Component'}" style="max-width:100px;max-height:100px;display:block;margin:0 auto;">`;
+        return;
+    }
+    
+    // Create and configure the image
+    const img = document.createElement('img');
+    img.src = imageSrc;
+    img.alt = componentType || 'Component image';
+    img.style.maxWidth = '100px';
+    img.style.maxHeight = '100px';
+    img.style.display = 'block';
+    img.style.margin = '0 auto';
+    
+    // Set up error handler with fallback
+    img.onerror = function() {
+        console.warn(`Image not found: ${imageSrc}. Using placeholder.`);
+        const defaultImage = defaultImages[componentType] || defaultImages['Component'];
+        cell.innerHTML = `<img src="${defaultImage}" alt="${componentType || 'Component'}" style="max-width:100px;max-height:100px;display:block;margin:0 auto;">`;
+    };
+    
+    cell.appendChild(img);
+} 
